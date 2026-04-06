@@ -42,3 +42,12 @@ Select your device from the dropdown before dropping your files:
 3. Run the script:
    ```bash
    python divoom_converter.py
+(Note: On Mac/Linux, you might need to use python3 divoom_converter.py)
+4. The script will automatically install Pillow, pillow-avif-plugin, and PyQt6 if they are missing.
+5. Select your device, choose where to save the files, and drop your media!
+
+# 📸 Screenshots
+(Upload a screenshot of the running GUI and link it here: ![Screenshot](link-to-image.png))
+
+# ❤️ Acknowledgements
+Huge thanks to @d03n3rfr1tz3 for creating the ESP32 Divoom integration that makes custom smart home pixel art possible!
