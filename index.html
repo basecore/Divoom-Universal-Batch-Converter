@@ -10,8 +10,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <!-- gif.js for encoding GIFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
-    <!-- gifuct-js for decoding GIFs -->
-    <script src="https://unpkg.com/gifuct-js@2.1.2/dist/gifuct-js.min.js"></script>
+    <!-- gifuct-js for decoding GIFs (Locked to stable v1.0.0 for global window.parseGIF support) -->
+    <script src="https://cdn.jsdelivr.net/npm/gifuct-js@1.0.0/dist/gifuct-js.min.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
@@ -39,7 +39,7 @@
 
         <!-- Section 2: Upload Zone -->
         <input type="file" id="file-input" multiple accept="image/*,.gif,.webp,.avif" class="hidden">
-        <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6">
+        <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6 relative">
             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
@@ -50,21 +50,23 @@
             </div>
         </div>
 
-        <!-- NEW: Convert Button -->
+        <!-- Section 3: Convert Button -->
         <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
             3. Start Conversion
         </button>
 
         <!-- Section 4: Preview -->
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">4. Live Preview (Last Processed File):</label>
+            <label class="block font-bold mb-2 text-gray-700">4. Live Preview (Last Selected File):</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded">ORIGINAL</span>
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded shadow-sm">ORIGINAL</span>
+                    <span id="orig-placeholder" class="text-gray-400 text-sm">No file selected</span>
                     <img id="preview-orig" class="max-h-full max-w-full hidden object-contain" />
                 </div>
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded">CONVERTED (GIF)</span>
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED (GIF)</span>
+                    <span id="conv-placeholder" class="text-gray-400 text-sm">Waiting for conversion...</span>
                     <img id="preview-conv" class="max-h-full max-w-full hidden object-contain pixelated" />
                 </div>
             </div>
@@ -73,7 +75,7 @@
         <!-- Section 5: Logs -->
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
-            <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all">
+            <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all shadow-inner">
                 <div>> Ready. Select or drop files to begin...</div>
             </div>
         </div>
@@ -84,8 +86,12 @@
         const fileInput = document.getElementById('file-input');
         const convertBtn = document.getElementById('convert-btn');
         const logContainer = document.getElementById('log-container');
+        
         const previewOrig = document.getElementById('preview-orig');
+        const origPlaceholder = document.getElementById('orig-placeholder');
         const previewConv = document.getElementById('preview-conv');
+        const convPlaceholder = document.getElementById('conv-placeholder');
+        
         const deviceSelect = document.getElementById('device-select');
         const fileCountBadge = document.getElementById('file-count-badge');
 
@@ -110,6 +116,19 @@
                 fileCountBadge.textContent = `${pendingFiles.length} file(s) selected ready to convert`;
                 fileCountBadge.classList.remove('hidden');
                 convertBtn.disabled = false;
+                
+                // Show immediate preview of the last selected original file
+                const lastFile = pendingFiles[pendingFiles.length - 1];
+                const origUrl = URL.createObjectURL(lastFile);
+                previewOrig.src = origUrl;
+                previewOrig.classList.remove('hidden');
+                origPlaceholder.classList.add('hidden');
+                
+                // Reset converted preview
+                previewConv.classList.add('hidden');
+                previewConv.src = "";
+                convPlaceholder.classList.remove('hidden');
+
                 log(`Added ${pendingFiles.length} file(s) to queue. Press "Start Conversion".`);
             } else {
                 fileCountBadge.classList.add('hidden');
@@ -180,9 +199,10 @@
                 convertBtn.disabled = true;
                 convertBtn.textContent = "Converting... Please wait";
                 await processFiles(pendingFiles);
-                // Reset after conversion
-                updateFileQueue([]);
+                // Reset queue after conversion so user can upload more
+                pendingFiles = [];
                 fileInput.value = '';
+                fileCountBadge.classList.add('hidden');
                 convertBtn.textContent = "3. Start Conversion";
             }
         });
@@ -197,23 +217,20 @@
 
             for (let file of files) {
                 try {
-                    // Update Original Preview
-                    const origUrl = URL.createObjectURL(file);
-                    previewOrig.src = origUrl;
-                    previewOrig.classList.remove('hidden');
-
                     let gifBlob;
-                    // Strict checking for GIFs
+                    
+                    // Decode animated GIFs vs static images
                     if (file.type === "image/gif" || file.name.toLowerCase().endsWith('.gif')) {
                         gifBlob = await convertAnimatedGif(file, targetSize);
                     } else {
                         gifBlob = await convertStaticImage(file, targetSize);
                     }
 
-                    // Update Converted Preview
+                    // Update Converted Preview in UI for the last file
                     const convUrl = URL.createObjectURL(gifBlob);
                     previewConv.src = convUrl;
                     previewConv.classList.remove('hidden');
+                    convPlaceholder.classList.add('hidden');
 
                     // Prepare filename
                     const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
@@ -280,9 +297,9 @@
         async function convertAnimatedGif(file, size) {
             const buffer = await file.arrayBuffer();
             
-            // FIX: Use the correct namespace for gifuct-js
-            const parsedGif = gifuct.parseGIF(buffer);
-            const frames = gifuct.decompressFrames(parsedGif, true);
+            // Using the global window.parseGIF exposed by gifuct-js v1.0.0
+            const parsedGif = window.parseGIF(buffer);
+            const frames = window.decompressFrames(parsedGif, true);
             
             const gif = new GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 10, transparent: 0x000000 });
 
@@ -317,7 +334,6 @@
                 // Draw current frame patch
                 const frameImageData = new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height);
                 
-                // Create a temporary canvas to draw the patch, then composite it
                 const patchCanvas = document.createElement('canvas');
                 patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
