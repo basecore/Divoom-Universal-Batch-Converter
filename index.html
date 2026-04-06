@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.2.0</title>
+    <title>Divoom Universal Batch Converter v1.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
@@ -26,9 +25,15 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.2.0 (Nearest Neighbor Engine)</span>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.3.0 (True Global Palette & Nearest Neighbor)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
+            
+            <!-- GitHub Link -->
+            <a href="https://github.com/basecore/Divoom-Universal-Batch-Converter" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center text-sm font-semibold text-gray-500 hover:text-indigo-600 transition-colors">
+                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                View on GitHub
+            </a>
         </div>
 
         <div class="mb-6">
@@ -54,7 +59,7 @@
                     <span id="val-offset" class="text-sm font-bold text-indigo-600 bg-indigo-100 px-2 rounded">50%</span>
                 </div>
                 <input type="range" id="setting-offset" min="10" max="90" value="50" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                <p class="text-xs text-gray-500 mt-1">Adjust where inside the block the color is sampled from. 50% = Dead center (Recommended).</p>
+                <p class="text-xs text-gray-500 mt-1">Adjust the exact pixel that is sampled from each block. Look at the red dots in the preview. 50% = Center.</p>
             </div>
         </div>
 
@@ -70,27 +75,32 @@
         </div>
 
         <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
-            4. Start Conversion
+            4. Start Perfect Conversion
         </button>
 
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">5. Live Preview:</label>
-            <div class="flex gap-2 md:gap-4 h-48 md:h-64">
+            <div class="flex gap-2 md:gap-4 h-56 md:h-72">
                 
-                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-20 bg-white/80 px-1 rounded shadow-sm">ORIGINAL + SAMPLING GRID</span>
+                <!-- Original Container (Perfectly aligned grid) -->
+                <div class="flex-1 bg-white border border-gray-300 shadow-inner rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-500 z-20 bg-white/90 px-1 rounded shadow-sm">ORIGINAL + GRID</span>
                     <span id="orig-placeholder" class="text-gray-400 text-sm">No file selected</span>
                     
-                    <div id="orig-container" class="hidden relative h-full aspect-square w-auto mx-auto border border-gray-300 bg-white">
-                        <img id="preview-orig" class="w-full h-full object-contain pixelated" />
-                        <canvas id="grid-overlay" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    <div id="orig-container" class="hidden relative w-full h-full flex items-center justify-center">
+                        <img id="preview-orig" class="absolute w-full h-full object-contain pixelated" />
+                        <canvas id="grid-overlay" class="absolute w-full h-full object-contain pointer-events-none"></canvas>
                     </div>
                 </div>
                 
-                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED RESULT</span>
-                    <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2 bg-white/80 rounded p-1">Waiting for conversion...</span>
-                    <img id="preview-conv" class="w-full h-full object-contain hidden pixelated" />
+                <!-- Converted Container -->
+                <div class="flex-1 bg-white border border-gray-300 shadow-inner rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-600 z-10 bg-white/90 px-1 rounded shadow-sm">CONVERTED RESULT</span>
+                    <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2 bg-white/90 rounded p-1">Waiting for conversion...</span>
+                    
+                    <div id="conv-container" class="hidden relative w-full h-full flex items-center justify-center">
+                        <img id="preview-conv" class="absolute w-full h-full object-contain pixelated" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -98,13 +108,15 @@
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
             <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all shadow-inner">
-                <div>> Ready. Switch to Nearest Neighbor Sampling Engine.</div>
+                <div>> Ready. Engine: gifenc Global Palette + Nearest Neighbor</div>
             </div>
         </div>
     </div>
 
+    <!-- Module imports for gifuct-js (parsing) and gifenc (encoding) -->
     <script type="module">
         import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
+        import { GIFEncoder, quantize, applyPalette } from 'https://cdn.jsdelivr.net/npm/gifenc@1.0.3/dist/gifenc.esm.js';
 
         document.getElementById('setting-offset').addEventListener('input', (e) => {
             document.getElementById('val-offset').textContent = e.target.value + '%';
@@ -126,14 +138,12 @@
         
         const previewConv = document.getElementById('preview-conv');
         const convPlaceholder = document.getElementById('conv-placeholder');
+        const convContainer = document.getElementById('conv-container');
         
         const deviceSelect = document.getElementById('device-select');
         const fileCountBadge = document.getElementById('file-count-badge');
 
         let pendingFiles = [];
-
-        const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
-        const workerUrl = URL.createObjectURL(workerBlob);
 
         function log(msg, type = "info") {
             const div = document.createElement('div');
@@ -146,13 +156,20 @@
 
         function drawGridOverlay() {
             if (pendingFiles.length === 0) return;
-            
             const targetSize = parseInt(deviceSelect.value);
             const offsetPercent = parseInt(document.getElementById('setting-offset').value) / 100.0;
             
+            const img = document.getElementById('preview-orig');
             const overlay = document.getElementById('grid-overlay');
-            overlay.width = targetSize * 20; 
-            overlay.height = targetSize * 20;
+            
+            if (!img.naturalWidth) {
+                setTimeout(drawGridOverlay, 50);
+                return;
+            }
+
+            // Sync canvas resolution perfectly with image resolution
+            overlay.width = img.naturalWidth;
+            overlay.height = img.naturalHeight;
             
             const ctx = overlay.getContext('2d');
             ctx.clearRect(0, 0, overlay.width, overlay.height);
@@ -160,9 +177,8 @@
             const blockW = overlay.width / targetSize;
             const blockH = overlay.height / targetSize;
 
-            // Draw grid lines
-            ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.4)';
+            ctx.lineWidth = Math.max(1, overlay.width / 200); 
             ctx.beginPath();
             for(let i = 1; i < targetSize; i++) {
                 ctx.moveTo(i * blockW, 0); ctx.lineTo(i * blockW, overlay.height);
@@ -170,15 +186,13 @@
             }
             ctx.stroke();
 
-            // Draw single sampling points
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+            const dotSize = Math.max(2, overlay.width / 100);
             for (let y = 0; y < targetSize; y++) {
                 for (let x = 0; x < targetSize; x++) {
                     let pointX = x * blockW + (blockW * offsetPercent);
                     let pointY = y * blockH + (blockH * offsetPercent);
-                    
-                    // Draw a 4x4 pixel dot at the exact sampling location
-                    ctx.fillRect(pointX - 2, pointY - 2, 4, 4);
+                    ctx.fillRect(pointX - dotSize/2, pointY - dotSize/2, dotSize, dotSize);
                 }
             }
         }
@@ -197,13 +211,13 @@
                 origContainer.classList.remove('hidden');
                 origPlaceholder.classList.add('hidden');
                 
-                previewConv.classList.add('hidden');
+                convContainer.classList.add('hidden');
                 previewConv.src = "";
                 convPlaceholder.classList.remove('hidden');
                 
-                setTimeout(() => { drawGridOverlay(); }, 50);
+                previewOrig.onload = () => drawGridOverlay();
 
-                log(`Added ${pendingFiles.length} file(s). Adjust settings and press Convert.`);
+                log(`Added ${pendingFiles.length} file(s). Select size and click Convert.`);
             } else {
                 fileCountBadge.classList.add('hidden');
                 convertBtn.disabled = true;
@@ -257,52 +271,114 @@
             }
         });
 
-        function extractPerfectPixels(srcCanvas, targetSize, offsetPercent) {
-            const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
-            const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
-            
-            const targetCanvas = document.createElement('canvas');
-            targetCanvas.width = targetSize; targetCanvas.height = targetSize;
-            const targetCtx = targetCanvas.getContext('2d');
-            const targetData = targetCtx.createImageData(targetSize, targetSize);
-            
-            const blockW = srcCanvas.width / targetSize;
-            const blockH = srcCanvas.height / targetSize;
-            
-            for (let y = 0; y < targetSize; y++) {
-                for (let x = 0; x < targetSize; x++) {
-                    
-                    // NEAREST NEIGHBOR POINT SAMPLING
-                    // We only look at ONE single pixel inside the block!
-                    let sampleX = Math.floor(x * blockW + (blockW * offsetPercent));
-                    let sampleY = Math.floor(y * blockH + (blockH * offsetPercent));
-                    
-                    // Ensure bounds
-                    if (sampleX >= srcCanvas.width) sampleX = srcCanvas.width - 1;
-                    if (sampleY >= srcCanvas.height) sampleY = srcCanvas.height - 1;
+        // 1. EXTRACT NEAREST NEIGHBOR FRAMES (Like ezgif/Gifsicle)
+        function extractFrames(frames, size, offsetPercent) {
+            const compCanvas = document.createElement('canvas');
+            compCanvas.width = frames[0].dims.width;
+            compCanvas.height = frames[0].dims.height;
+            const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
+            compCtx.imageSmoothingEnabled = false;
 
-                    let srcIdx = (sampleY * srcCanvas.width + sampleX) * 4;
-                    
-                    let finalR = srcData[srcIdx];
-                    let finalG = srcData[srcIdx+1];
-                    let finalB = srcData[srcIdx+2];
-                    let finalA = srcData[srcIdx+3];
+            const backupCanvas = document.createElement('canvas');
+            backupCanvas.width = frames[0].dims.width;
+            backupCanvas.height = frames[0].dims.height;
+            const backupCtx = backupCanvas.getContext('2d');
 
-                    const tgtIdx = (y * targetSize + x) * 4;
-                    targetData.data[tgtIdx] = finalR; 
-                    targetData.data[tgtIdx + 1] = finalG;
-                    targetData.data[tgtIdx + 2] = finalB; 
-                    targetData.data[tgtIdx + 3] = finalA;
+            const blockW = compCanvas.width / size;
+            const blockH = compCanvas.height / size;
+
+            const downscaledFrames = [];
+
+            for (let i = 0; i < frames.length; i++) {
+                const frame = frames[i];
+
+                if (frame.disposalType === 3) {
+                    backupCtx.clearRect(0, 0, backupCanvas.width, backupCanvas.height);
+                    backupCtx.drawImage(compCanvas, 0, 0);
+                }
+
+                const frameImageData = new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height);
+                const patchCanvas = document.createElement('canvas');
+                patchCanvas.width = frame.dims.width;
+                patchCanvas.height = frame.dims.height;
+                patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
+
+                compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
+
+                const srcData = compCtx.getImageData(0, 0, compCanvas.width, compCanvas.height).data;
+                const targetData = new Uint8Array(size * size * 4);
+
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        let sampleX = Math.floor(x * blockW + (blockW * offsetPercent));
+                        let sampleY = Math.floor(y * blockH + (blockH * offsetPercent));
+                        
+                        if (sampleX >= compCanvas.width) sampleX = compCanvas.width - 1;
+                        if (sampleY >= compCanvas.height) sampleY = compCanvas.height - 1;
+
+                        const srcIdx = (sampleY * compCanvas.width + sampleX) * 4;
+                        const tgtIdx = (y * size + x) * 4;
+
+                        targetData[tgtIdx] = srcData[srcIdx];         // R
+                        targetData[tgtIdx+1] = srcData[srcIdx+1];     // G
+                        targetData[tgtIdx+2] = srcData[srcIdx+2];     // B
+                        targetData[tgtIdx+3] = srcData[srcIdx+3];     // A
+                    }
+                }
+
+                downscaledFrames.push({
+                    pixels: targetData,
+                    delay: frame.delay
+                });
+
+                if (frame.disposalType === 2) {
+                    compCtx.clearRect(frame.dims.left, frame.dims.top, frame.dims.width, frame.dims.height);
+                } else if (frame.disposalType === 3) {
+                    compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
+                    compCtx.drawImage(backupCanvas, 0, 0);
                 }
             }
-            targetCtx.putImageData(targetData, 0, 0);
-            return targetCanvas;
+            return downscaledFrames;
+        }
+
+        // 2. ENCODE WITH TRUE GLOBAL PALETTE (Fixes Color Shifting)
+        function encodePerfectGif(downscaledFrames, size) {
+            log(`Generating single Global Palette from all ${downscaledFrames.length} frames...`);
+            
+            let totalPixels = downscaledFrames.length * size * size;
+            let allPixels = new Uint8Array(totalPixels * 4);
+            let offset = 0;
+            
+            for (let f of downscaledFrames) {
+                allPixels.set(f.pixels, offset);
+                offset += f.pixels.length;
+            }
+
+            // Quantize ONCE for the entire animation (exactly what gifsicle does)
+            const palette = quantize(allPixels, 256, { format: 'rgba4444' });
+            let transparentIndex = palette.findIndex(p => p[3] === 0);
+            const paletteRGB = palette.map(p => [p[0], p[1], p[2]]);
+
+            const gif = new GIFEncoder();
+            
+            for (let f of downscaledFrames) {
+                // Apply the exact same palette to every frame
+                const indexArray = applyPalette(f.pixels, palette, 'rgba4444');
+                gif.writeFrame(indexArray, size, size, {
+                    palette: paletteRGB,
+                    transparent: transparentIndex !== -1,
+                    transparentIndex: transparentIndex === -1 ? 0 : transparentIndex,
+                    delay: f.delay
+                });
+            }
+            
+            gif.finish();
+            return new Blob([gif.bytes()], { type: 'image/gif' });
         }
 
         async function processFiles(files) {
             const targetSize = parseInt(deviceSelect.value);
             const offsetPercent = parseInt(document.getElementById('setting-offset').value) / 100.0;
-            
             const zip = new window.JSZip();
             let successCount = 0;
 
@@ -310,7 +386,11 @@
                 try {
                     let gifBlob;
                     if (file.type === "image/gif" || file.name.toLowerCase().endsWith('.gif')) {
-                        gifBlob = await convertAnimatedGif(file, targetSize, offsetPercent);
+                        const buffer = await file.arrayBuffer();
+                        const parsedGif = parseGIF(buffer);
+                        const frames = decompressFrames(parsedGif, true);
+                        const downscaled = extractFrames(frames, targetSize, offsetPercent);
+                        gifBlob = encodePerfectGif(downscaled, targetSize);
                     } else {
                         gifBlob = await convertStaticImage(file, targetSize, offsetPercent);
                     }
@@ -321,7 +401,7 @@
                         previewConv.src = "";
                         setTimeout(() => {
                             previewConv.src = convUrl;
-                            previewConv.classList.remove('hidden');
+                            convContainer.classList.remove('hidden');
                             convPlaceholder.classList.add('hidden');
                         }, 50);
                     }
@@ -356,67 +436,21 @@
                 img.onload = () => {
                     const srcCanvas = document.createElement('canvas');
                     srcCanvas.width = img.width; srcCanvas.height = img.height;
-                    srcCanvas.getContext('2d').drawImage(img, 0, 0);
+                    const ctx = srcCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
                     
-                    const targetCanvas = extractPerfectPixels(srcCanvas, size, offsetPercent);
-                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
-                    gif.addFrame(targetCanvas, {delay: 1000});
-                    gif.on('finished', blob => resolve(blob));
-                    gif.render();
+                    const frames = [{
+                        patch: ctx.getImageData(0,0,img.width,img.height).data,
+                        dims: { width: img.width, height: img.height, left: 0, top: 0 },
+                        disposalType: 0,
+                        delay: 1000
+                    }];
+
+                    const downscaled = extractFrames(frames, size, offsetPercent);
+                    resolve(encodePerfectGif(downscaled, size));
                 };
                 img.onerror = () => reject(new Error("Image load error"));
                 img.src = URL.createObjectURL(file);
-            });
-        }
-
-        async function convertAnimatedGif(file, size, offsetPercent) {
-            const buffer = await file.arrayBuffer();
-            const parsedGif = parseGIF(buffer);
-            const frames = decompressFrames(parsedGif, true);
-            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
-
-            const compCanvas = document.createElement('canvas');
-            compCanvas.width = frames[0].dims.width; compCanvas.height = frames[0].dims.height;
-            const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
-            compCtx.imageSmoothingEnabled = false;
-
-            let backupCanvas = document.createElement('canvas');
-            backupCanvas.width = frames[0].dims.width; backupCanvas.height = frames[0].dims.height;
-            let backupCtx = backupCanvas.getContext('2d');
-
-            log(`Rendering using Nearest Neighbor point sampling...`);
-
-            for (let i = 0; i < frames.length; i++) {
-                const frame = frames[i];
-                
-                if (frame.disposalType === 3) {
-                    backupCtx.clearRect(0, 0, backupCanvas.width, backupCanvas.height);
-                    backupCtx.drawImage(compCanvas, 0, 0);
-                }
-
-                const frameImageData = new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height);
-                const patchCanvas = document.createElement('canvas'); 
-                patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
-                const patchCtx = patchCanvas.getContext('2d');
-                patchCtx.imageSmoothingEnabled = false;
-                patchCtx.putImageData(frameImageData, 0, 0);
-                
-                compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
-
-                const targetCanvas = extractPerfectPixels(compCanvas, size, offsetPercent);
-                gif.addFrame(targetCanvas, {delay: frame.delay, copy: true});
-
-                if (frame.disposalType === 2) {
-                    compCtx.clearRect(frame.dims.left, frame.dims.top, frame.dims.width, frame.dims.height);
-                } else if (frame.disposalType === 3) {
-                    compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
-                    compCtx.drawImage(backupCanvas, 0, 0);
-                }
-            }
-
-            return new Promise((resolve) => {
-                gif.on('finished', blob => resolve(blob));
-                gif.render();
             });
         }
     </script>
