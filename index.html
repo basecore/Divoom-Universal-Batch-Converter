@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.3</title>
+    <title>Divoom Universal Batch Converter v1.0.4</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -29,7 +29,7 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.3 (Center-Pixel Extraction)</span>
+            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.4 (Strict Color Consistency)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
             
@@ -110,7 +110,6 @@
 
         let pendingFiles = [];
 
-        // Create a blob URL for the GIF.js worker
         const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -214,10 +213,9 @@
             }
         });
 
-        // --- CORE FIX: Center Pixel Extraction ---
-        // Dies liest EXAKT die Mitte jedes Blocks aus und ignoriert Raster/Grid-Linien zu 100%
+        // --- CORE FIX: Center Pixel Extraction (works for any target size like 32x32 or 64x64) ---
         function extractPerfectPixels(srcCanvas, targetSize) {
-            const srcCtx = srcCanvas.getContext('2d');
+            const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
             const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
             
             const targetCanvas = document.createElement('canvas');
@@ -231,7 +229,6 @@
             
             for (let y = 0; y < targetSize; y++) {
                 for (let x = 0; x < targetSize; x++) {
-                    // Berechne die exakte mathematische Mitte des Blocks
                     const cx = Math.floor(x * blockW + (blockW / 2));
                     const cy = Math.floor(y * blockH + (blockH / 2));
                     
@@ -313,11 +310,10 @@
                     srcCanvas.width = img.width; srcCanvas.height = img.height;
                     srcCanvas.getContext('2d').drawImage(img, 0, 0);
 
-                    // Nutze die neue Methode zur Raster-Eliminierung
                     const targetCanvas = extractPerfectPixels(srcCanvas, size);
 
-                    // KEIN forced transparent (verhindert, dass dunkles Braun zu durchsichtig wird)
-                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false });
+                    // Strict quality setting to enforce true color mapping
+                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
                     gif.addFrame(targetCanvas, {delay: 1000});
                     gif.on('finished', blob => resolve(blob));
                     gif.render();
@@ -333,13 +329,13 @@
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
             
-            // KEIN forced transparent
-            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false });
+            // Ensure no artificial transparency mapping is forced and quality is set to preserve true colors
+            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
 
             const compCanvas = document.createElement('canvas');
             compCanvas.width = frames[0].dims.width;
             compCanvas.height = frames[0].dims.height;
-            const compCtx = compCanvas.getContext('2d');
+            const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
 
             let prevImageData = null;
 
@@ -363,7 +359,6 @@
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
-                // Nutze die neue Methode zur Raster-Eliminierung direkt vom Kompositions-Canvas
                 const targetCanvas = extractPerfectPixels(compCanvas, size);
 
                 gif.addFrame(targetCanvas, {delay: frame.delay, copy: true});
