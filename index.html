@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.2</title>
+    <title>Divoom Universal Batch Converter v1.0.3</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -29,12 +29,12 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.2 (Grid-Color Fix)</span>
+            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.3 (Center-Pixel Extraction)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
             
             <a href="https://github.com/basecore/Divoom-Universal-Batch-Converter/tree/main" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
-                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
                 View on GitHub
             </a>
         </div>
@@ -110,6 +110,7 @@
 
         let pendingFiles = [];
 
+        // Create a blob URL for the GIF.js worker
         const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -213,6 +214,40 @@
             }
         });
 
+        // --- CORE FIX: Center Pixel Extraction ---
+        // Dies liest EXAKT die Mitte jedes Blocks aus und ignoriert Raster/Grid-Linien zu 100%
+        function extractPerfectPixels(srcCanvas, targetSize) {
+            const srcCtx = srcCanvas.getContext('2d');
+            const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
+            
+            const targetCanvas = document.createElement('canvas');
+            targetCanvas.width = targetSize;
+            targetCanvas.height = targetSize;
+            const targetCtx = targetCanvas.getContext('2d');
+            const targetData = targetCtx.createImageData(targetSize, targetSize);
+            
+            const blockW = srcCanvas.width / targetSize;
+            const blockH = srcCanvas.height / targetSize;
+            
+            for (let y = 0; y < targetSize; y++) {
+                for (let x = 0; x < targetSize; x++) {
+                    // Berechne die exakte mathematische Mitte des Blocks
+                    const cx = Math.floor(x * blockW + (blockW / 2));
+                    const cy = Math.floor(y * blockH + (blockH / 2));
+                    
+                    const srcIdx = (cy * srcCanvas.width + cx) * 4;
+                    const tgtIdx = (y * targetSize + x) * 4;
+                    
+                    targetData.data[tgtIdx]     = srcData[srcIdx];     // Red
+                    targetData.data[tgtIdx + 1] = srcData[srcIdx + 1]; // Green
+                    targetData.data[tgtIdx + 2] = srcData[srcIdx + 2]; // Blue
+                    targetData.data[tgtIdx + 3] = srcData[srcIdx + 3]; // Alpha
+                }
+            }
+            targetCtx.putImageData(targetData, 0, 0);
+            return targetCanvas;
+        }
+
         async function processFiles(files) {
             const targetSize = parseInt(deviceSelect.value);
             log(`Starting conversion of ${files.length} file(s) to ${targetSize}x${targetSize}...`);
@@ -274,18 +309,16 @@
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = size; canvas.height = size;
-                    const ctx = canvas.getContext('2d');
-                    
-                    // NEU: Interpolation AKTIVIERT lassen beim Skalieren, damit das Grid aus den 320x320 Bildern 
-                    // sauber vermischt wird und die Farbkonsistenz erhalten bleibt.
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = "high";
-                    ctx.drawImage(img, 0, 0, size, size);
+                    const srcCanvas = document.createElement('canvas');
+                    srcCanvas.width = img.width; srcCanvas.height = img.height;
+                    srcCanvas.getContext('2d').drawImage(img, 0, 0);
 
-                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, transparent: 0x000000 });
-                    gif.addFrame(canvas, {delay: 1000});
+                    // Nutze die neue Methode zur Raster-Eliminierung
+                    const targetCanvas = extractPerfectPixels(srcCanvas, size);
+
+                    // KEIN forced transparent (verhindert, dass dunkles Braun zu durchsichtig wird)
+                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false });
+                    gif.addFrame(targetCanvas, {delay: 1000});
                     gif.on('finished', blob => resolve(blob));
                     gif.render();
                 };
@@ -300,20 +333,13 @@
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
             
-            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, transparent: 0x000000 });
+            // KEIN forced transparent
+            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false });
 
             const compCanvas = document.createElement('canvas');
             compCanvas.width = frames[0].dims.width;
             compCanvas.height = frames[0].dims.height;
             const compCtx = compCanvas.getContext('2d');
-
-            const targetCanvas = document.createElement('canvas');
-            targetCanvas.width = size; targetCanvas.height = size;
-            const targetCtx = targetCanvas.getContext('2d');
-            
-            // NEU: Auch für animierte GIFs Interpolation aktivieren, um Grid-Linien beim Runterskalieren zu eliminieren
-            targetCtx.imageSmoothingEnabled = true; 
-            targetCtx.imageSmoothingQuality = "high";
 
             let prevImageData = null;
 
@@ -337,11 +363,10 @@
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
-                targetCtx.clearRect(0, 0, size, size);
-                targetCtx.drawImage(compCanvas, 0, 0, size, size);
+                // Nutze die neue Methode zur Raster-Eliminierung direkt vom Kompositions-Canvas
+                const targetCanvas = extractPerfectPixels(compCanvas, size);
 
-                // Add to GIF with copy to prevent cumulative blurring on transparent backgrounds
-                gif.addFrame(targetCtx, {delay: frame.delay, copy: true});
+                gif.addFrame(targetCanvas, {delay: frame.delay, copy: true});
             }
 
             return new Promise((resolve) => {
