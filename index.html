@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.1</title>
+    <title>Divoom Universal Batch Converter v1.0.2</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -27,10 +27,9 @@
 
     <div class="max-w-3xl w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
         
-        <!-- Header with Version and GitHub Link -->
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.1 (Color Fix)</span>
+            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.2 (Grid-Color Fix)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
             
@@ -40,7 +39,6 @@
             </a>
         </div>
 
-        <!-- Section 1: Device Selection -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">1. Select Target Device & Size:</label>
             <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white">
@@ -52,7 +50,6 @@
             </select>
         </div>
 
-        <!-- Section 2: Upload Zone -->
         <input type="file" id="file-input" multiple accept="image/*,.gif,.webp,.avif" class="hidden">
         <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6 relative">
             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -65,24 +62,20 @@
             </div>
         </div>
 
-        <!-- Section 3: Convert Button -->
         <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
             3. Start Conversion
         </button>
 
-        <!-- Section 4: Preview -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">4. Live Preview (Last Selected File):</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
                 
-                <!-- Original Preview Container -->
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
                     <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded shadow-sm">ORIGINAL</span>
                     <span id="orig-placeholder" class="text-gray-400 text-sm">No file selected</span>
                     <img id="preview-orig" class="w-full h-full object-contain hidden" />
                 </div>
                 
-                <!-- Converted Preview Container -->
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
                     <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED (GIF)</span>
                     <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2 bg-white/80 rounded p-1">Waiting for conversion...</span>
@@ -91,7 +84,6 @@
             </div>
         </div>
 
-        <!-- Section 5: Logs -->
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
             <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all shadow-inner">
@@ -100,7 +92,6 @@
         </div>
     </div>
 
-    <!-- ES Module Import for GIF decoding -->
     <script type="module">
         import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
@@ -119,7 +110,6 @@
 
         let pendingFiles = [];
 
-        // Create a blob URL for the GIF.js worker
         const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -240,7 +230,6 @@
                         gifBlob = await convertStaticImage(file, targetSize);
                     }
 
-                    // Update UI
                     const convUrl = URL.createObjectURL(gifBlob);
                     previewConv.src = convUrl;
                     previewConv.classList.remove('hidden');
@@ -289,11 +278,13 @@
                     canvas.width = size; canvas.height = size;
                     const ctx = canvas.getContext('2d');
                     
-                    ctx.imageSmoothingEnabled = false;
+                    // NEU: Interpolation AKTIVIERT lassen beim Skalieren, damit das Grid aus den 320x320 Bildern 
+                    // sauber vermischt wird und die Farbkonsistenz erhalten bleibt.
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = "high";
                     ctx.drawImage(img, 0, 0, size, size);
 
-                    // FIXED: quality 1 ensures perfect color mapping, dither false prevents noisy pixels
-                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: 0x000000 });
+                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, transparent: 0x000000 });
                     gif.addFrame(canvas, {delay: 1000});
                     gif.on('finished', blob => resolve(blob));
                     gif.render();
@@ -309,8 +300,7 @@
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
             
-            // FIXED: quality 1 ensures perfect color mapping, dither false prevents noisy pixels
-            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: 0x000000 });
+            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, transparent: 0x000000 });
 
             const compCanvas = document.createElement('canvas');
             compCanvas.width = frames[0].dims.width;
@@ -320,7 +310,10 @@
             const targetCanvas = document.createElement('canvas');
             targetCanvas.width = size; targetCanvas.height = size;
             const targetCtx = targetCanvas.getContext('2d');
-            targetCtx.imageSmoothingEnabled = false; 
+            
+            // NEU: Auch für animierte GIFs Interpolation aktivieren, um Grid-Linien beim Runterskalieren zu eliminieren
+            targetCtx.imageSmoothingEnabled = true; 
+            targetCtx.imageSmoothingQuality = "high";
 
             let prevImageData = null;
 
@@ -344,10 +337,10 @@
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
-                // Clear target canvas completely before drawing the new scaled frame
                 targetCtx.clearRect(0, 0, size, size);
                 targetCtx.drawImage(compCanvas, 0, 0, size, size);
 
+                // Add to GIF with copy to prevent cumulative blurring on transparent backgrounds
                 gif.addFrame(targetCtx, {delay: frame.delay, copy: true});
             }
 
