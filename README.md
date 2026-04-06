@@ -5,7 +5,7 @@ A completely client-side, browser-based tool designed to convert images and anim
 This project was specifically created as a companion tool for the awesome [esp32-divoom](https://github.com/d03n3rfr1tz3/esp32-divoom) and [hass-divoom](https://github.com/d03n3rfr1tz3/hass-divoom) Home Assistant integrations.
 
 ## 🚀 Try it out right now!
-**[Click here to open the Web App](https://YOUR-USERNAME.github.io/YOUR-REPO-NAME)**  
+**[Click here to open the Web App](https://basecore.github.io/Divoom-Universal-Batch-Converter/)**
 *(Note: Replace the link above with your actual GitHub Pages URL once enabled)*
 
 ## ⚠️ The Problem it Solves
