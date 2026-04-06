@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.4</title>
+    <title>Divoom Universal Batch Converter v1.0.5</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -29,7 +29,7 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.4 (Strict Color Consistency)</span>
+            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.5 (AI Color Locking)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
             
@@ -166,7 +166,6 @@
             
             const items = e.dataTransfer.items;
             const extractedFiles = [];
-
             log(`Scanning dropped items...`);
             
             async function traverseFileTree(item, path = '') {
@@ -213,8 +212,8 @@
             }
         });
 
-        // --- CORE FIX: Center Pixel Extraction (works for any target size like 32x32 or 64x64) ---
-        function extractPerfectPixels(srcCanvas, targetSize) {
+        // --- CORE FIX: Intelligent Mode Extraction & Temporal Color Locking ---
+        function extractPerfectPixels(srcCanvas, targetSize, globalPalette) {
             const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
             const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
             
@@ -229,16 +228,79 @@
             
             for (let y = 0; y < targetSize; y++) {
                 for (let x = 0; x < targetSize; x++) {
-                    const cx = Math.floor(x * blockW + (blockW / 2));
-                    const cy = Math.floor(y * blockH + (blockH / 2));
                     
-                    const srcIdx = (cy * srcCanvas.width + cx) * 4;
+                    // 1. SPATIAL FILTER: Nimm nur die inneren 50% des Blocks, um harte Rasterlinien zu ignorieren
+                    let startX = Math.floor(x * blockW + blockW * 0.25);
+                    let endX = Math.floor(x * blockW + blockW * 0.75);
+                    let startY = Math.floor(y * blockH + blockH * 0.25);
+                    let endY = Math.floor(y * blockH + blockH * 0.75);
+
+                    // Fallback für winzige Blöcke (z.B. wenn 64x64 aus 64x64 erzeugt wird)
+                    if (endX <= startX) { startX = Math.floor(x*blockW); endX = startX + 1; }
+                    if (endY <= startY) { startY = Math.floor(y*blockH); endY = startY + 1; }
+
+                    let colorCounts = {};
+                    let maxCount = 0;
+                    let domColor = { r: 0, g: 0, b: 0, a: 0 };
+
+                    // Berechne die häufigste Farbe (Modus) im inneren Block
+                    for (let by = startY; by < endY; by++) {
+                        for (let bx = startX; bx < endX; bx++) {
+                            let idx = (by * srcCanvas.width + bx) * 4;
+                            let r = srcData[idx];
+                            let g = srcData[idx+1];
+                            let b = srcData[idx+2];
+                            let a = srcData[idx+3];
+
+                            // Gruppiere extrem ähnliche Artefakt-Farben zusammen (Rundung)
+                            let rG = Math.floor(r / 8);
+                            let gG = Math.floor(g / 8);
+                            let bG = Math.floor(b / 8);
+                            let key = `${rG},${gG},${bG},${a > 128 ? 1 : 0}`;
+
+                            if (!colorCounts[key]) {
+                                colorCounts[key] = { count: 0, r: r, g: g, b: b, a: a };
+                            }
+                            colorCounts[key].count++;
+
+                            if (colorCounts[key].count > maxCount) {
+                                maxCount = colorCounts[key].count;
+                                domColor = colorCounts[key];
+                            }
+                        }
+                    }
+
+                    let finalR = domColor.r;
+                    let finalG = domColor.g;
+                    let finalB = domColor.b;
+                    let finalA = domColor.a;
+
+                    // 2. TEMPORAL FILTER: Wenn die Farbe einer bereits gesehenen sehr ähnlich ist, nutze die alte!
+                    if (finalA > 10 && globalPalette) {
+                        let matched = false;
+                        for (let color of globalPalette) {
+                            // Berechne Farbabstand (Euklidische Distanz)
+                            let dist = Math.sqrt(Math.pow(finalR - color[0], 2) + Math.pow(finalG - color[1], 2) + Math.pow(finalB - color[2], 2));
+                            
+                            // Wenn der Unterschied sehr klein ist (< 25), raste ein auf die vorherige Farbe
+                            if (dist < 25) { 
+                                finalR = color[0];
+                                finalG = color[1];
+                                finalB = color[2];
+                                matched = true;
+                                break;
+                            }
+                        }
+                        if (!matched) {
+                            globalPalette.push([finalR, finalG, finalB]);
+                        }
+                    }
+
                     const tgtIdx = (y * targetSize + x) * 4;
-                    
-                    targetData.data[tgtIdx]     = srcData[srcIdx];     // Red
-                    targetData.data[tgtIdx + 1] = srcData[srcIdx + 1]; // Green
-                    targetData.data[tgtIdx + 2] = srcData[srcIdx + 2]; // Blue
-                    targetData.data[tgtIdx + 3] = srcData[srcIdx + 3]; // Alpha
+                    targetData.data[tgtIdx]     = finalR;
+                    targetData.data[tgtIdx + 1] = finalG;
+                    targetData.data[tgtIdx + 2] = finalB;
+                    targetData.data[tgtIdx + 3] = finalA;
                 }
             }
             targetCtx.putImageData(targetData, 0, 0);
@@ -310,9 +372,10 @@
                     srcCanvas.width = img.width; srcCanvas.height = img.height;
                     srcCanvas.getContext('2d').drawImage(img, 0, 0);
 
-                    const targetCanvas = extractPerfectPixels(srcCanvas, size);
+                    // Nutze eine leere Palette für statische Bilder
+                    let globalPalette = [];
+                    const targetCanvas = extractPerfectPixels(srcCanvas, size, globalPalette);
 
-                    // Strict quality setting to enforce true color mapping
                     const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
                     gif.addFrame(targetCanvas, {delay: 1000});
                     gif.on('finished', blob => resolve(blob));
@@ -329,7 +392,6 @@
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
             
-            // Ensure no artificial transparency mapping is forced and quality is set to preserve true colors
             const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
 
             const compCanvas = document.createElement('canvas');
@@ -338,6 +400,8 @@
             const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
 
             let prevImageData = null;
+            // DIESE Palette merkt sich Farben über ALLE Frames hinweg, um Flackern zu stoppen!
+            let globalPalette = []; 
 
             for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
@@ -359,7 +423,7 @@
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
-                const targetCanvas = extractPerfectPixels(compCanvas, size);
+                const targetCanvas = extractPerfectPixels(compCanvas, size, globalPalette);
 
                 gif.addFrame(targetCanvas, {delay: frame.delay, copy: true});
             }
