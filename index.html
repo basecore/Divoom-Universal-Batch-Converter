@@ -19,16 +19,16 @@
         .pixelated { image-rendering: pixelated; image-rendering: crisp-edges; }
     </style>
 </head>
-<body class="text-gray-800 p-6 min-h-screen flex flex-col items-center">
+<body class="text-gray-800 p-4 md:p-6 min-h-screen flex flex-col items-center">
 
-    <div class="max-w-3xl w-full bg-white rounded-xl shadow-lg p-8">
-        <h1 class="text-3xl font-bold mb-2 text-center text-indigo-600">👾 Divoom Web Converter</h1>
-        <p class="text-center text-gray-500 mb-8">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
+    <div class="max-w-3xl w-full bg-white rounded-xl shadow-lg p-6 md:p-8">
+        <h1 class="text-2xl md:text-3xl font-bold mb-2 text-center text-indigo-600">👾 Divoom Web Converter</h1>
+        <p class="text-center text-sm md:text-base text-gray-500 mb-8">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
 
-        <!-- Sektion 1: Gerätewahl -->
+        <!-- Section 1: Device Selection -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">1. Select Target Device & Size:</label>
-            <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none">
+            <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white">
                 <option value="16">Pixoo, Ditoo, Timebox, Timoo, Tivoo (16x16)</option>
                 <option value="32">Pixoo Max, Backpack M (32x32)</option>
                 <option value="64">Pixoo 64 (64x64)</option>
@@ -37,48 +37,50 @@
             </select>
         </div>
 
-        <!-- Sektion 2: Dropzone -->
-        <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6">
-            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- Section 2: Upload Zone -->
+        <input type="file" id="file-input" multiple accept="image/*,.gif,.webp,.avif" class="hidden">
+        <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p class="text-lg font-bold text-gray-600">2. Drop GIFs, images or a whole folder here</p>
-            <p class="text-sm text-gray-500 mt-2">Supported: .gif, .png, .jpg, .webp</p>
-            <p class="text-xs text-indigo-500 mt-4 font-semibold">(Multiple files will be automatically zipped!)</p>
+            <p class="text-base md:text-lg font-bold text-gray-600 pointer-events-none">2. Click to select OR drop files here</p>
+            <p class="text-xs md:text-sm text-gray-500 mt-2 pointer-events-none">Supported: .gif, .png, .jpg, .webp</p>
+            <p class="text-xs text-indigo-500 mt-4 font-semibold pointer-events-none">(Multiple files will be automatically zipped!)</p>
         </div>
 
-        <!-- Sektion 3: Vorschau -->
+        <!-- Section 3: Preview -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">3. Live Preview (Last File):</label>
-            <div class="flex gap-4 h-64">
-                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative">
-                    <span class="absolute top-2 left-2 text-xs font-bold text-gray-400">ORIGINAL</span>
-                    <img id="preview-orig" class="max-h-full max-w-full hidden" />
+            <div class="flex gap-2 md:gap-4 h-48 md:h-64">
+                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded">ORIGINAL</span>
+                    <img id="preview-orig" class="max-h-full max-w-full hidden object-contain" />
                 </div>
-                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative">
-                    <span class="absolute top-2 left-2 text-xs font-bold text-indigo-400">CONVERTED (GIF)</span>
-                    <img id="preview-conv" class="max-h-full max-w-full hidden pixelated" />
+                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded">CONVERTED (GIF)</span>
+                    <img id="preview-conv" class="max-h-full max-w-full hidden object-contain pixelated" />
                 </div>
             </div>
         </div>
 
-        <!-- Sektion 4: Log -->
+        <!-- Section 4: Logs -->
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
-            <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-sm p-4 rounded-lg h-40 overflow-y-auto">
-                <div>> Ready. Drop files to begin...</div>
+            <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all">
+                <div>> Ready. Select or drop files to begin...</div>
             </div>
         </div>
     </div>
 
     <script>
         const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input');
         const logContainer = document.getElementById('log-container');
         const previewOrig = document.getElementById('preview-orig');
         const previewConv = document.getElementById('preview-conv');
         const deviceSelect = document.getElementById('device-select');
 
-        // Create a blob URL for the GIF.js worker so we don't need a separate file
+        // Create a blob URL for the GIF.js worker so we don't need a separate file hosted
         const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -91,6 +93,20 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
+        // --- Click to Upload Handling ---
+        dropzone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                await processFiles(files);
+            }
+            // Reset input so the same files can be selected again if needed
+            fileInput.value = '';
+        });
+
         // --- Drag & Drop Handling ---
         dropzone.addEventListener('dragover', (e) => {
             e.preventDefault();
@@ -101,19 +117,18 @@
             e.preventDefault();
             dropzone.classList.remove('drop-active');
             
-            const targetSize = parseInt(deviceSelect.value);
             const items = e.dataTransfer.items;
-            const files = [];
+            const extractedFiles = [];
 
             log(`Scanning dropped items...`);
             
-            // Recursive file collection
+            // Recursive file collection for dropped folders
             async function traverseFileTree(item, path = '') {
                 if (item.isFile) {
                     const file = await new Promise(resolve => item.file(resolve));
-                    if (file.type.startsWith('image/')) {
+                    if (file.type.startsWith('image/') || file.name.toLowerCase().endsWith('.gif')) {
                         file.fullPath = path + file.name;
-                        files.push(file);
+                        extractedFiles.push(file);
                     }
                 } else if (item.isDirectory) {
                     const dirReader = item.createReader();
@@ -126,16 +141,27 @@
                 }
             }
 
-            for (let i = 0; i < items.length; i++) {
-                const item = items[i].webkitGetAsEntry();
-                if (item) await traverseFileTree(item);
+            if (items) {
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i].webkitGetAsEntry();
+                    if (item) await traverseFileTree(item);
+                }
+            } else {
+                // Fallback for older browsers
+                extractedFiles.push(...Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
             }
 
+            await processFiles(extractedFiles);
+        });
+
+        // --- Core Processing Logic ---
+        async function processFiles(files) {
             if (files.length === 0) {
                 log("No valid images found.", "error");
                 return;
             }
 
+            const targetSize = parseInt(deviceSelect.value);
             log(`Found ${files.length} image(s). Starting conversion to ${targetSize}x${targetSize}...`);
             
             const zip = new JSZip();
@@ -149,7 +175,8 @@
                     previewOrig.classList.remove('hidden');
 
                     let gifBlob;
-                    if (file.type === "image/gif") {
+                    // Strict checking for GIFs
+                    if (file.type === "image/gif" || file.name.toLowerCase().endsWith('.gif')) {
                         gifBlob = await convertAnimatedGif(file, targetSize);
                     } else {
                         gifBlob = await convertStaticImage(file, targetSize);
@@ -169,7 +196,9 @@
                         const a = document.createElement('a');
                         a.href = convUrl;
                         a.download = newName;
+                        document.body.appendChild(a);
                         a.click();
+                        document.body.removeChild(a);
                     } else {
                         // Multiple files: Add to ZIP
                         zip.file(newName, gifBlob);
@@ -183,18 +212,21 @@
                 }
             }
 
+            // Generate ZIP if multiple files were processed successfully
             if (files.length > 1 && successCount > 0) {
                 log(`Zipping ${successCount} files...`);
                 const zipBlob = await zip.generateAsync({type:"blob"});
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(zipBlob);
                 a.download = `divoom_batch_${targetSize}x${targetSize}.zip`;
+                document.body.appendChild(a);
                 a.click();
+                document.body.removeChild(a);
                 log("Batch download complete!", "success");
             }
-        });
+        }
 
-        // --- Processing Logic ---
+        // --- Conversion Engines ---
         async function convertStaticImage(file, size) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -202,6 +234,7 @@
                     const canvas = document.createElement('canvas');
                     canvas.width = size; canvas.height = size;
                     const ctx = canvas.getContext('2d');
+                    
                     // NEAREST NEIGHBOR SCALING (Hard Pixels)
                     ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(img, 0, 0, size, size);
@@ -229,7 +262,7 @@
             compCanvas.height = frames[0].dims.height;
             const compCtx = compCanvas.getContext('2d');
 
-            // Target canvas for the resized frames (16x16)
+            // Target canvas for the resized frames
             const targetCanvas = document.createElement('canvas');
             targetCanvas.width = size; targetCanvas.height = size;
             const targetCtx = targetCanvas.getContext('2d');
@@ -240,7 +273,7 @@
             for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
                 
-                // Handle Disposal Methods
+                // Handle Disposal Methods correctly to prevent ghosting
                 if (frame.disposalType === 2) {
                     compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
                 } else if (frame.disposalType === 3 && prevImageData) {
