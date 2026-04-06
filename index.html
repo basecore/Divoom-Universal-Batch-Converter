@@ -3,9 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.8</title>
+    <title>Divoom Universal Batch Converter v1.0.9</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- JSZip for batch downloading -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- gif.js for encoding GIFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     
     <style>
@@ -26,12 +29,16 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.0.8 (Dynamic Palette Tolerance)</span>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.0.9 (Sync & Strict Compose)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
+            
+            <a href="https://github.com/basecore/Divoom-Universal-Batch-Converter/tree/main" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                View on GitHub
+            </a>
         </div>
 
-        <!-- Section 1: Device Selection -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">1. Target Device & Size:</label>
             <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white">
@@ -43,7 +50,6 @@
             </select>
         </div>
 
-        <!-- Section 2: Pro Settings -->
         <div class="mb-6 bg-gray-50 p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
             <h3 class="font-bold text-gray-800 mb-4 flex items-center">
                 <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
@@ -67,13 +73,11 @@
                 <input type="range" id="setting-tolerance" min="0" max="30" value="10" step="1" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
                 <p class="text-xs text-gray-500 mt-2">
                     <b>0% (None):</b> Every frame uses exact colors (may flicker).<br>
-                    <b>10% (Default):</b> If a color changes by less than 10% from a previous frame, it stays identical to the previous frame.<br>
-                    <b>> 15%:</b> Very aggressive, might merge two similar (but different) colors together.
+                    <b>10% (Default):</b> Minor color shifts < 10% snap to previous colors.<br>
                 </p>
             </div>
         </div>
 
-        <!-- Section 3: Upload Zone -->
         <input type="file" id="file-input" multiple accept="image/*,.gif,.webp,.avif" class="hidden">
         <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6 relative">
             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,16 +89,13 @@
             </div>
         </div>
 
-        <!-- Section 4: Convert Button -->
         <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
             4. Start Conversion
         </button>
 
-        <!-- Section 5: Preview -->
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">5. Live Preview (Last Selected File):</label>
+            <label class="block font-bold mb-2 text-gray-700">5. Synchronized Live Preview:</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
-                
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
                     <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded shadow-sm">ORIGINAL</span>
                     <span id="orig-placeholder" class="text-gray-400 text-sm">No file selected</span>
@@ -120,7 +121,6 @@
     <script type="module">
         import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
-        // Event Listeners for UI
         document.getElementById('setting-boxsize').addEventListener('input', (e) => {
             document.getElementById('val-boxsize').textContent = e.target.value + '%';
         });
@@ -151,6 +151,21 @@
             if (type === "success") div.classList.add("text-blue-400");
             logContainer.appendChild(div);
             logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // SYNC PREVIEW FUNCTION
+        function syncPreviews(origUrl, convUrl) {
+            previewOrig.src = "";
+            previewConv.src = "";
+            
+            setTimeout(() => {
+                previewOrig.src = origUrl;
+                previewConv.src = convUrl;
+                previewOrig.classList.remove('hidden');
+                previewConv.classList.remove('hidden');
+                origPlaceholder.classList.add('hidden');
+                convPlaceholder.classList.add('hidden');
+            }, 50);
         }
 
         function updateFileQueue(newFiles) {
@@ -226,7 +241,6 @@
             }
         });
 
-        // Berechnet die prozentuale Differenz zwischen zwei Farben (max Distanz = 441.67)
         function colorDiffPercent(r1, g1, b1, r2, g2, b2) {
             const dist = Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2));
             return (dist / 441.67) * 100;
@@ -266,7 +280,8 @@
                             let idx = (by * srcCanvas.width + bx) * 4;
                             let r = srcData[idx]; let g = srcData[idx+1]; let b = srcData[idx+2]; let a = srcData[idx+3];
 
-                            let rG = Math.floor(r / 5); let gG = Math.floor(g / 5); let bG = Math.floor(b / 5);
+                            // Starkere Gruppierung gegen Canvas-Antialiasing (Rundung auf 10)
+                            let rG = Math.floor(r / 10); let gG = Math.floor(g / 10); let bG = Math.floor(b / 10);
                             let key = `${rG},${gG},${bG},${a > 128 ? 1 : 0}`;
 
                             if (!colorCounts[key]) colorCounts[key] = { count: 0, r: r, g: g, b: b, a: a };
@@ -281,16 +296,12 @@
 
                     let finalR = domColor.r; let finalG = domColor.g; let finalB = domColor.b; let finalA = domColor.a;
 
-                    // THE DYNAMIC PALETTE ALGORITHM
                     if (finalA > 10) {
                         let matched = false;
-
-                        // 1. Suche nach einer existierenden Farbe in der Palette, die extrem ähnlich ist
                         if (tolerancePercent > 0) {
                             for (let color of globalPalette) {
                                 let diff = colorDiffPercent(finalR, finalG, finalB, color[0], color[1], color[2]);
                                 
-                                // Wenn die Abweichung geringer ist als die eingestellte Toleranz, snap auf die alte Farbe
                                 if (diff <= tolerancePercent) {
                                     finalR = color[0];
                                     finalG = color[1];
@@ -300,8 +311,6 @@
                                 }
                             }
                         }
-
-                        // 2. Wenn es eine komplett neue Farbe ist (oder Toleranz auf 0), füge sie zur Palette hinzu
                         if (!matched) {
                             globalPalette.push([finalR, finalG, finalB]);
                         }
@@ -336,9 +345,12 @@
                     }
 
                     const convUrl = URL.createObjectURL(gifBlob);
-                    previewConv.src = convUrl;
-                    previewConv.classList.remove('hidden');
-                    convPlaceholder.classList.add('hidden');
+                    const origUrl = URL.createObjectURL(file);
+                    
+                    // SYNC PREVIEW CALL
+                    if (file === files[files.length - 1]) {
+                        syncPreviews(origUrl, convUrl);
+                    }
 
                     const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
                     const newName = `${baseName}_${targetSize}x${targetSize}.gif`;
@@ -393,9 +405,12 @@
             const compCanvas = document.createElement('canvas');
             compCanvas.width = frames[0].dims.width; compCanvas.height = frames[0].dims.height;
             const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
+            
+            // WICHTIG: Komplett Abschaltung der Browser-Glättung beim Patch-Zeichnen!
+            compCtx.imageSmoothingEnabled = false;
 
             let prevImageData = null;
-            let globalPalette = []; // Dynamische Palette wächst während der gesamten Animation
+            let globalPalette = []; 
 
             for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
@@ -406,7 +421,12 @@
 
                 const frameImageData = new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height);
                 const patchCanvas = document.createElement('canvas'); patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
-                patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
+                
+                // WICHTIG: Komplett Abschaltung der Browser-Glättung im Patch-Canvas!
+                const patchCtx = patchCanvas.getContext('2d');
+                patchCtx.imageSmoothingEnabled = false;
+                patchCtx.putImageData(frameImageData, 0, 0);
+                
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
                 const targetCanvas = extractPerfectPixels(compCanvas, size, globalPalette, boxSize, tolerance);
