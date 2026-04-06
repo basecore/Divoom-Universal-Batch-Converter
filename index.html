@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.1.2</title>
+    <title>Divoom Universal Batch Converter v1.1.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
@@ -26,12 +26,16 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.1.2 (2-Pass Global Scan)</span>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.1.3 (Interactive Visual Grid)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
+            
+            <a href="https://github.com/basecore/Divoom-Universal-Batch-Converter/tree/main" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
+                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
+                View on GitHub
+            </a>
         </div>
 
-        <!-- Section 1: Device Selection -->
         <div class="mb-6">
             <label class="block font-bold mb-2 text-gray-700">1. Target Device & Size:</label>
             <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white">
@@ -51,11 +55,11 @@
             
             <div class="mb-5">
                 <div class="flex justify-between mb-1">
-                    <label class="text-sm font-bold text-gray-700">Grid/Raster Ignore Size</label>
+                    <label class="text-sm font-bold text-gray-700">Grid/Raster Ignore Size (See Red Preview)</label>
                     <span id="val-boxsize" class="text-sm font-bold text-indigo-600 bg-indigo-100 px-2 rounded">20%</span>
                 </div>
                 <input type="range" id="setting-boxsize" min="10" max="100" value="20" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                <p class="text-xs text-gray-500 mt-1">Samples only the absolute center of each block. 20% is optimal for 16x16 grids.</p>
+                <p class="text-xs text-gray-500 mt-1">Adjust to ensure the red sampling boxes do not touch black grid lines.</p>
             </div>
 
             <div>
@@ -64,9 +68,7 @@
                     <span id="val-tolerance" class="text-sm font-bold text-indigo-600 bg-indigo-100 px-2 rounded">15%</span>
                 </div>
                 <input type="range" id="setting-tolerance" min="0" max="30" value="15" step="1" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                <p class="text-xs text-gray-500 mt-2">
-                    Forces pixels to match the Global Palette scanned in Pass 1.
-                </p>
+                <p class="text-xs text-gray-500 mt-2">Forces pixels to strictly match the perfect Global Palette (15-20% is ideal).</p>
             </div>
         </div>
 
@@ -86,16 +88,23 @@
         </button>
 
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">5. Synchronized Live Preview:</label>
+            <label class="block font-bold mb-2 text-gray-700">5. Live Preview (Adjust Slider to see Grid):</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
+                
+                <!-- Original Preview with Red Overlay Grid -->
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded shadow-sm">ORIGINAL</span>
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-20 bg-white/80 px-1 rounded shadow-sm">ORIGINAL + SAMPLING GRID</span>
                     <span id="orig-placeholder" class="text-gray-400 text-sm">No file selected</span>
-                    <img id="preview-orig" class="w-full h-full object-contain hidden" />
+                    
+                    <div id="orig-container" class="hidden relative h-full aspect-square w-auto mx-auto border border-gray-300 bg-white">
+                        <img id="preview-orig" class="w-full h-full object-contain pixelated" />
+                        <canvas id="grid-overlay" class="absolute top-0 left-0 w-full h-full pointer-events-none"></canvas>
+                    </div>
                 </div>
                 
+                <!-- Converted Preview -->
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
-                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED (GIF)</span>
+                    <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED RESULT</span>
                     <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2 bg-white/80 rounded p-1">Waiting for conversion...</span>
                     <img id="preview-conv" class="w-full h-full object-contain hidden pixelated" />
                 </div>
@@ -105,7 +114,7 @@
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
             <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all shadow-inner">
-                <div>> Ready. Select or drop files to begin...</div>
+                <div>> Ready. Click upload zone to begin...</div>
             </div>
         </div>
     </div>
@@ -113,8 +122,10 @@
     <script type="module">
         import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
+        // Event Listener for visual UI changes
         document.getElementById('setting-boxsize').addEventListener('input', (e) => {
             document.getElementById('val-boxsize').textContent = e.target.value + '%';
+            drawGridOverlay(); // Redraw grid dynamically
         });
         document.getElementById('setting-tolerance').addEventListener('input', (e) => {
             document.getElementById('val-tolerance').textContent = e.target.value + '%';
@@ -128,16 +139,21 @@
                 document.getElementById('setting-boxsize').value = 50;
                 document.getElementById('val-boxsize').textContent = "50%";
             }
+            drawGridOverlay(); // Update grid for new size
         });
 
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
         const convertBtn = document.getElementById('convert-btn');
         const logContainer = document.getElementById('log-container');
+        
         const previewOrig = document.getElementById('preview-orig');
         const origPlaceholder = document.getElementById('orig-placeholder');
+        const origContainer = document.getElementById('orig-container');
+        
         const previewConv = document.getElementById('preview-conv');
         const convPlaceholder = document.getElementById('conv-placeholder');
+        
         const deviceSelect = document.getElementById('device-select');
         const fileCountBadge = document.getElementById('file-count-badge');
 
@@ -155,13 +171,50 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        function syncPreviews(origUrl, convUrl) {
-            previewOrig.src = ""; previewConv.src = "";
-            setTimeout(() => {
-                previewOrig.src = origUrl; previewConv.src = convUrl;
-                previewOrig.classList.remove('hidden'); previewConv.classList.remove('hidden');
-                origPlaceholder.classList.add('hidden'); convPlaceholder.classList.add('hidden');
-            }, 50);
+        // --- DRAW THE VISUAL GRID ---
+        function drawGridOverlay() {
+            if (pendingFiles.length === 0) return;
+            
+            const targetSize = parseInt(deviceSelect.value);
+            const boxSizePercent = parseInt(document.getElementById('setting-boxsize').value);
+            
+            const overlay = document.getElementById('grid-overlay');
+            // Provide enough resolution for crisp lines
+            overlay.width = targetSize * 20; 
+            overlay.height = targetSize * 20;
+            
+            const ctx = overlay.getContext('2d');
+            ctx.clearRect(0, 0, overlay.width, overlay.height);
+            
+            const blockW = overlay.width / targetSize;
+            const blockH = overlay.height / targetSize;
+            const marginPercent = (1.0 - (boxSizePercent / 100.0)) / 2.0;
+
+            // 1. Draw faint block borders (showing the grid cells)
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for(let i = 1; i < targetSize; i++) {
+                ctx.moveTo(i * blockW, 0); ctx.lineTo(i * blockW, overlay.height);
+                ctx.moveTo(0, i * blockH); ctx.lineTo(overlay.width, i * blockH);
+            }
+            ctx.stroke();
+
+            // 2. Draw solid inner sampling areas
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+            for (let y = 0; y < targetSize; y++) {
+                for (let x = 0; x < targetSize; x++) {
+                    let startX = x * blockW + blockW * marginPercent;
+                    let startY = y * blockH + blockH * marginPercent;
+                    let w = blockW * (boxSizePercent / 100.0);
+                    let h = blockH * (boxSizePercent / 100.0);
+                    
+                    if (w < 1) w = 1;
+                    if (h < 1) h = 1;
+
+                    ctx.fillRect(startX, startY, w, h);
+                }
+            }
         }
 
         function updateFileQueue(newFiles) {
@@ -173,13 +226,19 @@
                 
                 const lastFile = pendingFiles[pendingFiles.length - 1];
                 const origUrl = URL.createObjectURL(lastFile);
+                
                 previewOrig.src = origUrl;
-                previewOrig.classList.remove('hidden');
+                origContainer.classList.remove('hidden');
                 origPlaceholder.classList.add('hidden');
                 
                 previewConv.classList.add('hidden');
                 previewConv.src = "";
                 convPlaceholder.classList.remove('hidden');
+                
+                // Draw grid once image is loaded
+                drawGridOverlay();
+
+                log(`Added ${pendingFiles.length} file(s). Adjust settings and press Convert.`);
             } else {
                 fileCountBadge.classList.add('hidden');
                 convertBtn.disabled = true;
@@ -188,10 +247,16 @@
 
         dropzone.addEventListener('click', () => fileInput.click());
         fileInput.addEventListener('change', (e) => updateFileQueue(Array.from(e.target.files)));
+        
         dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drop-active'); });
-        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drop-active'); });
+        
+        // BUGFIX: Correctly closed event listener to fix click behavior
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drop-active'));
+        
         dropzone.addEventListener('drop', async (e) => {
-            e.preventDefault(); dropzone.classList.remove('drop-active');
+            e.preventDefault(); 
+            dropzone.classList.remove('drop-active');
+            
             const items = e.dataTransfer.items;
             const extractedFiles = [];
             
@@ -235,7 +300,6 @@
             return (dist / 441.67) * 100;
         }
 
-        // Baut eine Palette aus EINEM spezifischen Bild/Frame auf
         function buildPaletteFromCanvas(srcCanvas, targetSize, boxSizePercent) {
             const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
             const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
@@ -337,7 +401,6 @@
                         let bestMatch = null;
                         let minDiff = Infinity;
                         
-                        // Finde die allerähnlichste Farbe aus der Master-Palette
                         for (let color of masterPalette) {
                             let diff = colorDiffPercent(finalR, finalG, finalB, color[0], color[1], color[2]);
                             if (diff < minDiff) {
@@ -346,11 +409,8 @@
                             }
                         }
                         
-                        // Wenn die ähnlichste Farbe in der Toleranz liegt, wende sie zwingend an!
                         if (bestMatch && minDiff <= tolerancePercent) {
-                            finalR = bestMatch[0];
-                            finalG = bestMatch[1];
-                            finalB = bestMatch[2];
+                            finalR = bestMatch[0]; finalG = bestMatch[1]; finalB = bestMatch[2];
                         }
                     }
 
@@ -380,9 +440,15 @@
                     }
 
                     const convUrl = URL.createObjectURL(gifBlob);
-                    const origUrl = URL.createObjectURL(file);
                     
-                    if (file === files[files.length - 1]) syncPreviews(origUrl, convUrl);
+                    if (file === files[files.length - 1]) {
+                        previewConv.src = "";
+                        setTimeout(() => {
+                            previewConv.src = convUrl;
+                            previewConv.classList.remove('hidden');
+                            convPlaceholder.classList.add('hidden');
+                        }, 50);
+                    }
 
                     const baseName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
                     const newName = `${baseName}_${targetSize}x${targetSize}.gif`;
@@ -447,7 +513,6 @@
 
             log(`Pass 1: Scanning all ${frames.length} frames for global color palette...`);
             
-            // --- PASS 1: SCAN ALL FRAMES FOR COLORS ---
             for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
                 
@@ -467,7 +532,6 @@
 
                 let framePalette = buildPaletteFromCanvas(compCanvas, size, boxSize);
                 
-                // Füge nur Farben zur Master-Palette hinzu, die deutlich anders sind (> 2%)
                 for(let color of framePalette) {
                     let exists = false;
                     for(let mColor of masterPalette) {
@@ -489,7 +553,6 @@
             log(`Pass 1 Complete: Found ${masterPalette.length} unique pure colors in animation.`);
             log(`Pass 2: Rendering frames with strict palette locking...`);
 
-            // --- PASS 2: RESET AND RENDER ---
             compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
             backupCtx.clearRect(0, 0, backupCanvas.width, backupCanvas.height);
 
