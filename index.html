@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.0</title>
+    <title>Divoom Universal Batch Converter v1.0.1</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -14,7 +14,6 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
         .drop-active { border-color: #10b981 !important; background-color: #ecfdf5 !important; }
-        /* Wichtig: Das macht die skalierten Bilder knackscharf */
         .pixelated { 
             image-rendering: -moz-crisp-edges;
             image-rendering: -o-crisp-edges;
@@ -31,7 +30,7 @@
         <!-- Header with Version and GitHub Link -->
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.0</span>
+            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.1 (Color Fix)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
             
@@ -84,10 +83,9 @@
                 </div>
                 
                 <!-- Converted Preview Container -->
-                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
+                <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZWVlIi8+PHJlY3QgeD0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmZmYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iI2VlZSIvPjwvc3ZnPg==')]">
                     <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-indigo-500 z-10 bg-white/80 px-1 rounded shadow-sm">CONVERTED (GIF)</span>
-                    <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2">Waiting for conversion...</span>
-                    <!-- WICHTIG: width und height sind auf 100% gesetzt, kombiniert mit .pixelated -->
+                    <span id="conv-placeholder" class="text-gray-400 text-sm text-center px-2 bg-white/80 rounded p-1">Waiting for conversion...</span>
                     <img id="preview-conv" class="w-full h-full object-contain hidden pixelated" />
                 </div>
             </div>
@@ -294,7 +292,8 @@
                     ctx.imageSmoothingEnabled = false;
                     ctx.drawImage(img, 0, 0, size, size);
 
-                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 10, transparent: 0x000000 });
+                    // FIXED: quality 1 ensures perfect color mapping, dither false prevents noisy pixels
+                    const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: 0x000000 });
                     gif.addFrame(canvas, {delay: 1000});
                     gif.on('finished', blob => resolve(blob));
                     gif.render();
@@ -310,7 +309,8 @@
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
             
-            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 10, transparent: 0x000000 });
+            // FIXED: quality 1 ensures perfect color mapping, dither false prevents noisy pixels
+            const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: 0x000000 });
 
             const compCanvas = document.createElement('canvas');
             compCanvas.width = frames[0].dims.width;
@@ -344,6 +344,7 @@
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
+                // Clear target canvas completely before drawing the new scaled frame
                 targetCtx.clearRect(0, 0, size, size);
                 targetCtx.drawImage(compCanvas, 0, 0, size, size);
 
