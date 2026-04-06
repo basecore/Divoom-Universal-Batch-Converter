@@ -45,12 +45,19 @@
             </svg>
             <p class="text-base md:text-lg font-bold text-gray-600 pointer-events-none">2. Click to select OR drop files here</p>
             <p class="text-xs md:text-sm text-gray-500 mt-2 pointer-events-none">Supported: .gif, .png, .jpg, .webp</p>
-            <p class="text-xs text-indigo-500 mt-4 font-semibold pointer-events-none">(Multiple files will be automatically zipped!)</p>
+            <div id="file-count-badge" class="hidden mt-4 inline-block bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
+                0 files selected
+            </div>
         </div>
 
-        <!-- Section 3: Preview -->
+        <!-- NEW: Convert Button -->
+        <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
+            3. Start Conversion
+        </button>
+
+        <!-- Section 4: Preview -->
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">3. Live Preview (Last File):</label>
+            <label class="block font-bold mb-2 text-gray-700">4. Live Preview (Last Processed File):</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
                     <span class="absolute top-2 left-2 text-[10px] md:text-xs font-bold text-gray-400 z-10 bg-white/80 px-1 rounded">ORIGINAL</span>
@@ -63,7 +70,7 @@
             </div>
         </div>
 
-        <!-- Section 4: Logs -->
+        <!-- Section 5: Logs -->
         <div>
             <label class="block font-bold mb-2 text-gray-700">Status & Logs:</label>
             <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs md:text-sm p-4 rounded-lg h-32 md:h-40 overflow-y-auto break-all">
@@ -75,12 +82,16 @@
     <script>
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
+        const convertBtn = document.getElementById('convert-btn');
         const logContainer = document.getElementById('log-container');
         const previewOrig = document.getElementById('preview-orig');
         const previewConv = document.getElementById('preview-conv');
         const deviceSelect = document.getElementById('device-select');
+        const fileCountBadge = document.getElementById('file-count-badge');
 
-        // Create a blob URL for the GIF.js worker so we don't need a separate file hosted
+        let pendingFiles = [];
+
+        // Create a blob URL for the GIF.js worker
         const workerBlob = new Blob(['importScripts("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js");'], { type: 'application/javascript' });
         const workerUrl = URL.createObjectURL(workerBlob);
 
@@ -93,18 +104,27 @@
             logContainer.scrollTop = logContainer.scrollHeight;
         }
 
+        function updateFileQueue(newFiles) {
+            pendingFiles = newFiles;
+            if (pendingFiles.length > 0) {
+                fileCountBadge.textContent = `${pendingFiles.length} file(s) selected ready to convert`;
+                fileCountBadge.classList.remove('hidden');
+                convertBtn.disabled = false;
+                log(`Added ${pendingFiles.length} file(s) to queue. Press "Start Conversion".`);
+            } else {
+                fileCountBadge.classList.add('hidden');
+                convertBtn.disabled = true;
+            }
+        }
+
         // --- Click to Upload Handling ---
         dropzone.addEventListener('click', () => {
             fileInput.click();
         });
 
-        fileInput.addEventListener('change', async (e) => {
+        fileInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
-            if (files.length > 0) {
-                await processFiles(files);
-            }
-            // Reset input so the same files can be selected again if needed
-            fileInput.value = '';
+            updateFileQueue(files);
         });
 
         // --- Drag & Drop Handling ---
@@ -122,7 +142,6 @@
 
             log(`Scanning dropped items...`);
             
-            // Recursive file collection for dropped folders
             async function traverseFileTree(item, path = '') {
                 if (item.isFile) {
                     const file = await new Promise(resolve => item.file(resolve));
@@ -132,9 +151,7 @@
                     }
                 } else if (item.isDirectory) {
                     const dirReader = item.createReader();
-                    const entries = await new Promise(resolve => {
-                        dirReader.readEntries(resolve);
-                    });
+                    const entries = await new Promise(resolve => dirReader.readEntries(resolve));
                     for (let entry of entries) {
                         await traverseFileTree(entry, path + item.name + "/");
                     }
@@ -147,22 +164,33 @@
                     if (item) await traverseFileTree(item);
                 }
             } else {
-                // Fallback for older browsers
                 extractedFiles.push(...Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
             }
 
-            await processFiles(extractedFiles);
+            if (extractedFiles.length === 0) {
+                log("No valid images found in drop.", "error");
+            } else {
+                updateFileQueue(extractedFiles);
+            }
+        });
+
+        // --- Convert Button Click ---
+        convertBtn.addEventListener('click', async () => {
+            if (pendingFiles.length > 0) {
+                convertBtn.disabled = true;
+                convertBtn.textContent = "Converting... Please wait";
+                await processFiles(pendingFiles);
+                // Reset after conversion
+                updateFileQueue([]);
+                fileInput.value = '';
+                convertBtn.textContent = "3. Start Conversion";
+            }
         });
 
         // --- Core Processing Logic ---
         async function processFiles(files) {
-            if (files.length === 0) {
-                log("No valid images found.", "error");
-                return;
-            }
-
             const targetSize = parseInt(deviceSelect.value);
-            log(`Found ${files.length} image(s). Starting conversion to ${targetSize}x${targetSize}...`);
+            log(`Starting conversion of ${files.length} file(s) to ${targetSize}x${targetSize}...`);
             
             const zip = new JSZip();
             let successCount = 0;
@@ -251,8 +279,10 @@
 
         async function convertAnimatedGif(file, size) {
             const buffer = await file.arrayBuffer();
-            const parsedGif = window.parseGIF(buffer);
-            const frames = window.decompressFrames(parsedGif, true);
+            
+            // FIX: Use the correct namespace for gifuct-js
+            const parsedGif = gifuct.parseGIF(buffer);
+            const frames = gifuct.decompressFrames(parsedGif, true);
             
             const gif = new GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 10, transparent: 0x000000 });
 
