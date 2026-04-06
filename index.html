@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Divoom Universal Batch Converter v1.0.5</title>
+    <title>Divoom Universal Batch Converter v1.0.7</title>
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- JSZip for batch downloading -->
@@ -29,18 +29,14 @@
         
         <div class="flex flex-col items-center mb-8 relative">
             <h1 class="text-2xl md:text-3xl font-bold text-center text-indigo-600">👾 Divoom Web Converter</h1>
-            <span class="bg-gray-200 text-gray-700 text-xs font-bold px-2 py-1 rounded-full mt-2">v1.0.5 (AI Color Locking)</span>
+            <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-indigo-200">v1.0.7 (Strict Frame-1 Palette)</span>
             
             <p class="text-center text-sm md:text-base text-gray-500 mt-4">Convert images and animations to Divoom-ready pixel-perfect GIFs entirely in your browser.</p>
-            
-            <a href="https://github.com/basecore/Divoom-Universal-Batch-Converter/tree/main" target="_blank" rel="noopener noreferrer" class="mt-4 flex items-center text-sm text-gray-500 hover:text-indigo-600 transition-colors">
-                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path></svg>
-                View on GitHub
-            </a>
         </div>
 
+        <!-- Section 1: Device Selection -->
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">1. Select Target Device & Size:</label>
+            <label class="block font-bold mb-2 text-gray-700">1. Target Device & Size:</label>
             <select id="device-select" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white">
                 <option value="16">Pixoo, Ditoo, Timebox, Timoo, Tivoo (16x16)</option>
                 <option value="32">Pixoo Max, Backpack M (32x32)</option>
@@ -50,24 +46,53 @@
             </select>
         </div>
 
+        <!-- Section 2: Pro Settings -->
+        <div class="mb-6 bg-gray-50 p-4 md:p-5 rounded-xl border border-gray-200 shadow-sm">
+            <h3 class="font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-5 h-5 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                2. Advanced Algorithm Settings
+            </h3>
+            
+            <div class="mb-5">
+                <div class="flex justify-between mb-1">
+                    <label class="text-sm font-bold text-gray-700">Grid/Raster Ignore Size</label>
+                    <span id="val-boxsize" class="text-sm font-bold text-indigo-600 bg-indigo-100 px-2 rounded">50%</span>
+                </div>
+                <input type="range" id="setting-boxsize" min="10" max="100" value="50" class="w-full h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                <p class="text-xs text-gray-500 mt-1">Lower = Ignores black grid lines. Higher = Captures full pixel area.</p>
+            </div>
+
+            <div>
+                <label class="text-sm font-bold text-gray-700 block mb-2">Color Consistency Strategy (Flicker Fix)</label>
+                <select id="setting-strategy" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none cursor-pointer bg-white text-sm">
+                    <option value="strict" selected>Strict: Lock all frames to colors from Frame 1 (Best for solid objects)</option>
+                    <option value="tolerant">Tolerant: Merge similar colors across frames</option>
+                    <option value="none">None: Allow natural color changes (Original)</option>
+                </select>
+                <p class="text-xs text-gray-500 mt-2">"Strict" prevents objects like yellow bins from shifting to orange or light-yellow during the animation.</p>
+            </div>
+        </div>
+
+        <!-- Section 3: Upload Zone -->
         <input type="file" id="file-input" multiple accept="image/*,.gif,.webp,.avif" class="hidden">
         <div id="dropzone" class="border-4 border-dashed border-gray-300 rounded-xl p-8 md:p-10 text-center cursor-pointer transition-colors duration-200 hover:bg-gray-50 mb-6 relative">
             <svg class="mx-auto h-12 w-12 text-gray-400 mb-4 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p class="text-base md:text-lg font-bold text-gray-600 pointer-events-none">2. Click to select OR drop files here</p>
-            <p class="text-xs md:text-sm text-gray-500 mt-2 pointer-events-none">Supported: .gif, .png, .jpg, .webp</p>
+            <p class="text-base md:text-lg font-bold text-gray-600 pointer-events-none">3. Click to select OR drop files here</p>
             <div id="file-count-badge" class="hidden mt-4 inline-block bg-indigo-100 text-indigo-800 text-xs font-bold px-3 py-1 rounded-full pointer-events-none">
                 0 files selected
             </div>
         </div>
 
+        <!-- Section 4: Convert Button -->
         <button id="convert-btn" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-bold py-4 px-4 rounded-xl mb-6 transition-colors shadow-md text-lg">
-            3. Start Conversion
+            4. Start Conversion
         </button>
 
+        <!-- Section 5: Preview -->
         <div class="mb-6">
-            <label class="block font-bold mb-2 text-gray-700">4. Live Preview (Last Selected File):</label>
+            <label class="block font-bold mb-2 text-gray-700">5. Live Preview (Last Selected File):</label>
             <div class="flex gap-2 md:gap-4 h-48 md:h-64">
                 
                 <div class="flex-1 bg-gray-100 border border-gray-200 rounded-lg flex flex-col items-center justify-center p-2 relative overflow-hidden">
@@ -95,16 +120,19 @@
     <script type="module">
         import { parseGIF, decompressFrames } from 'https://cdn.jsdelivr.net/npm/gifuct-js@2.1.2/+esm';
 
+        // Event Listeners for UI
+        document.getElementById('setting-boxsize').addEventListener('input', (e) => {
+            document.getElementById('val-boxsize').textContent = e.target.value + '%';
+        });
+
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('file-input');
         const convertBtn = document.getElementById('convert-btn');
         const logContainer = document.getElementById('log-container');
-        
         const previewOrig = document.getElementById('preview-orig');
         const origPlaceholder = document.getElementById('orig-placeholder');
         const previewConv = document.getElementById('preview-conv');
         const convPlaceholder = document.getElementById('conv-placeholder');
-        
         const deviceSelect = document.getElementById('device-select');
         const fileCountBadge = document.getElementById('file-count-badge');
 
@@ -139,7 +167,7 @@
                 previewConv.src = "";
                 convPlaceholder.classList.remove('hidden');
 
-                log(`Added ${pendingFiles.length} file(s) to queue. Press "Start Conversion".`);
+                log(`Added ${pendingFiles.length} file(s). Adjust settings and press Convert.`);
             } else {
                 fileCountBadge.classList.add('hidden');
                 convertBtn.disabled = true;
@@ -147,26 +175,15 @@
         }
 
         dropzone.addEventListener('click', () => fileInput.click());
-
-        fileInput.addEventListener('change', (e) => {
-            const files = Array.from(e.target.files);
-            updateFileQueue(files);
-        });
-
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('drop-active');
-        });
-        
+        fileInput.addEventListener('change', (e) => updateFileQueue(Array.from(e.target.files)));
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drop-active'); });
         dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drop-active'));
-        
         dropzone.addEventListener('drop', async (e) => {
             e.preventDefault();
             dropzone.classList.remove('drop-active');
             
             const items = e.dataTransfer.items;
             const extractedFiles = [];
-            log(`Scanning dropped items...`);
             
             async function traverseFileTree(item, path = '') {
                 if (item.isFile) {
@@ -193,11 +210,7 @@
                 extractedFiles.push(...Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')));
             }
 
-            if (extractedFiles.length === 0) {
-                log("No valid images found in drop.", "error");
-            } else {
-                updateFileQueue(extractedFiles);
-            }
+            if (extractedFiles.length > 0) updateFileQueue(extractedFiles);
         });
 
         convertBtn.addEventListener('click', async () => {
@@ -205,15 +218,32 @@
                 convertBtn.disabled = true;
                 convertBtn.textContent = "Converting... Please wait";
                 await processFiles(pendingFiles);
-                pendingFiles = [];
-                fileInput.value = '';
-                fileCountBadge.classList.add('hidden');
-                convertBtn.textContent = "3. Start Conversion";
+                convertBtn.disabled = false;
+                convertBtn.textContent = "4. Process Again (with new settings)";
             }
         });
 
-        // --- CORE FIX: Intelligent Mode Extraction & Temporal Color Locking ---
-        function extractPerfectPixels(srcCanvas, targetSize, globalPalette) {
+        // Berechnet die Distanz zwischen zwei Farben
+        function colorDistance(r1, g1, b1, r2, g2, b2) {
+            return Math.sqrt(Math.pow(r1 - r2, 2) + Math.pow(g1 - g2, 2) + Math.pow(b1 - b2, 2));
+        }
+
+        // Zwingt eine Farbe auf die exakt ähnlichste aus der Palette
+        function findClosestColor(r, g, b, palette) {
+            let closest = palette[0];
+            let minD = Infinity;
+            for (let c of palette) {
+                let d = colorDistance(r, g, b, c[0], c[1], c[2]);
+                if (d < minD) {
+                    minD = d;
+                    closest = c;
+                }
+            }
+            return closest;
+        }
+
+        // --- THE ENGINE ---
+        function extractPerfectPixels(srcCanvas, targetSize, globalPalette, isFirstFrame, boxSizePercent, strategy) {
             const srcCtx = srcCanvas.getContext('2d', { willReadFrequently: true });
             const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height).data;
             
@@ -225,42 +255,33 @@
             
             const blockW = srcCanvas.width / targetSize;
             const blockH = srcCanvas.height / targetSize;
+            const marginPercent = (1.0 - (boxSizePercent / 100.0)) / 2.0;
             
             for (let y = 0; y < targetSize; y++) {
                 for (let x = 0; x < targetSize; x++) {
                     
-                    // 1. SPATIAL FILTER: Nimm nur die inneren 50% des Blocks, um harte Rasterlinien zu ignorieren
-                    let startX = Math.floor(x * blockW + blockW * 0.25);
-                    let endX = Math.floor(x * blockW + blockW * 0.75);
-                    let startY = Math.floor(y * blockH + blockH * 0.25);
-                    let endY = Math.floor(y * blockH + blockH * 0.75);
+                    let startX = Math.floor(x * blockW + blockW * marginPercent);
+                    let endX = Math.floor(x * blockW + blockW * (1.0 - marginPercent));
+                    let startY = Math.floor(y * blockH + blockH * marginPercent);
+                    let endY = Math.floor(y * blockH + blockH * (1.0 - marginPercent));
 
-                    // Fallback für winzige Blöcke (z.B. wenn 64x64 aus 64x64 erzeugt wird)
-                    if (endX <= startX) { startX = Math.floor(x*blockW); endX = startX + 1; }
-                    if (endY <= startY) { startY = Math.floor(y*blockH); endY = startY + 1; }
+                    if (endX <= startX) { startX = Math.floor(x*blockW + blockW/2); endX = startX + 1; }
+                    if (endY <= startY) { startY = Math.floor(y*blockH + blockH/2); endY = startY + 1; }
 
                     let colorCounts = {};
                     let maxCount = 0;
                     let domColor = { r: 0, g: 0, b: 0, a: 0 };
 
-                    // Berechne die häufigste Farbe (Modus) im inneren Block
                     for (let by = startY; by < endY; by++) {
                         for (let bx = startX; bx < endX; bx++) {
                             let idx = (by * srcCanvas.width + bx) * 4;
-                            let r = srcData[idx];
-                            let g = srcData[idx+1];
-                            let b = srcData[idx+2];
-                            let a = srcData[idx+3];
+                            let r = srcData[idx]; let g = srcData[idx+1]; let b = srcData[idx+2]; let a = srcData[idx+3];
 
-                            // Gruppiere extrem ähnliche Artefakt-Farben zusammen (Rundung)
-                            let rG = Math.floor(r / 8);
-                            let gG = Math.floor(g / 8);
-                            let bG = Math.floor(b / 8);
+                            // Leichtes Gruppieren gegen minimale JPG-Artefakte
+                            let rG = Math.floor(r / 5); let gG = Math.floor(g / 5); let bG = Math.floor(b / 5);
                             let key = `${rG},${gG},${bG},${a > 128 ? 1 : 0}`;
 
-                            if (!colorCounts[key]) {
-                                colorCounts[key] = { count: 0, r: r, g: g, b: b, a: a };
-                            }
+                            if (!colorCounts[key]) colorCounts[key] = { count: 0, r: r, g: g, b: b, a: a };
                             colorCounts[key].count++;
 
                             if (colorCounts[key].count > maxCount) {
@@ -270,29 +291,29 @@
                         }
                     }
 
-                    let finalR = domColor.r;
-                    let finalG = domColor.g;
-                    let finalB = domColor.b;
-                    let finalA = domColor.a;
+                    let finalR = domColor.r; let finalG = domColor.g; let finalB = domColor.b; let finalA = domColor.a;
 
-                    // 2. TEMPORAL FILTER: Wenn die Farbe einer bereits gesehenen sehr ähnlich ist, nutze die alte!
-                    if (finalA > 10 && globalPalette) {
-                        let matched = false;
-                        for (let color of globalPalette) {
-                            // Berechne Farbabstand (Euklidische Distanz)
-                            let dist = Math.sqrt(Math.pow(finalR - color[0], 2) + Math.pow(finalG - color[1], 2) + Math.pow(finalB - color[2], 2));
-                            
-                            // Wenn der Unterschied sehr klein ist (< 25), raste ein auf die vorherige Farbe
-                            if (dist < 25) { 
-                                finalR = color[0];
-                                finalG = color[1];
-                                finalB = color[2];
-                                matched = true;
-                                break;
-                            }
-                        }
-                        if (!matched) {
+                    if (finalA > 10) {
+                        if (isFirstFrame) {
+                            // Frame 1: Lerne das perfekte Gelb der Tonne, das Grau der Straße, etc.
                             globalPalette.push([finalR, finalG, finalB]);
+                        } else {
+                            if (strategy === 'strict' && globalPalette.length > 0) {
+                                // STRICT MODE: Pixel darf NIEMALS eine neue Farbe annehmen! Er muss die ähnlichste Farbe aus Frame 1 wählen.
+                                let closest = findClosestColor(finalR, finalG, finalB, globalPalette);
+                                finalR = closest[0]; finalG = closest[1]; finalB = closest[2];
+                            } 
+                            else if (strategy === 'tolerant') {
+                                // TOLERANT MODE: Sucht Farben, die extrem nah dran sind (Distanz < 30) und snappt
+                                let matched = false;
+                                for (let color of globalPalette) {
+                                    if (colorDistance(finalR, finalG, finalB, color[0], color[1], color[2]) <= 30) { 
+                                        finalR = color[0]; finalG = color[1]; finalB = color[2];
+                                        matched = true; break;
+                                    }
+                                }
+                                if (!matched) globalPalette.push([finalR, finalG, finalB]);
+                            }
                         }
                     }
 
@@ -309,7 +330,8 @@
 
         async function processFiles(files) {
             const targetSize = parseInt(deviceSelect.value);
-            log(`Starting conversion of ${files.length} file(s) to ${targetSize}x${targetSize}...`);
+            const boxSize = parseInt(document.getElementById('setting-boxsize').value);
+            const strategy = document.getElementById('setting-strategy').value;
             
             const zip = new window.JSZip();
             let successCount = 0;
@@ -317,11 +339,10 @@
             for (let file of files) {
                 try {
                     let gifBlob;
-                    
                     if (file.type === "image/gif" || file.name.toLowerCase().endsWith('.gif')) {
-                        gifBlob = await convertAnimatedGif(file, targetSize);
+                        gifBlob = await convertAnimatedGif(file, targetSize, boxSize, strategy);
                     } else {
-                        gifBlob = await convertStaticImage(file, targetSize);
+                        gifBlob = await convertStaticImage(file, targetSize, boxSize);
                     }
 
                     const convUrl = URL.createObjectURL(gifBlob);
@@ -333,12 +354,8 @@
                     const newName = `${baseName}_${targetSize}x${targetSize}.gif`;
 
                     if (files.length === 1) {
-                        const a = document.createElement('a');
-                        a.href = convUrl;
-                        a.download = newName;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
+                        const a = document.createElement('a'); a.href = convUrl; a.download = newName;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
                     } else {
                         zip.file(newName, gifBlob);
                     }
@@ -347,24 +364,17 @@
                     successCount++;
                 } catch (err) {
                     log(`Failed ${file.name}: ${err.message}`, "error");
-                    console.error(err);
                 }
             }
 
             if (files.length > 1 && successCount > 0) {
-                log(`Zipping ${successCount} files...`);
                 const zipBlob = await zip.generateAsync({type:"blob"});
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(zipBlob);
-                a.download = `divoom_batch_${targetSize}x${targetSize}.zip`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                log("Batch download complete!", "success");
+                const a = document.createElement('a'); a.href = URL.createObjectURL(zipBlob); a.download = `divoom_batch_${targetSize}x${targetSize}.zip`;
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
             }
         }
 
-        async function convertStaticImage(file, size) {
+        async function convertStaticImage(file, size, boxSize) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
@@ -372,9 +382,7 @@
                     srcCanvas.width = img.width; srcCanvas.height = img.height;
                     srcCanvas.getContext('2d').drawImage(img, 0, 0);
 
-                    // Nutze eine leere Palette für statische Bilder
-                    let globalPalette = [];
-                    const targetCanvas = extractPerfectPixels(srcCanvas, size, globalPalette);
+                    const targetCanvas = extractPerfectPixels(srcCanvas, size, [], true, boxSize, 'none');
 
                     const gif = new window.GIF({ workers: 1, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
                     gif.addFrame(targetCanvas, {delay: 1000});
@@ -386,44 +394,33 @@
             });
         }
 
-        async function convertAnimatedGif(file, size) {
+        async function convertAnimatedGif(file, size, boxSize, strategy) {
             const buffer = await file.arrayBuffer();
-            
             const parsedGif = parseGIF(buffer);
             const frames = decompressFrames(parsedGif, true);
-            
             const gif = new window.GIF({ workers: 2, workerScript: workerUrl, width: size, height: size, quality: 1, dither: false, transparent: null });
 
             const compCanvas = document.createElement('canvas');
-            compCanvas.width = frames[0].dims.width;
-            compCanvas.height = frames[0].dims.height;
+            compCanvas.width = frames[0].dims.width; compCanvas.height = frames[0].dims.height;
             const compCtx = compCanvas.getContext('2d', { willReadFrequently: true });
 
             let prevImageData = null;
-            // DIESE Palette merkt sich Farben über ALLE Frames hinweg, um Flackern zu stoppen!
             let globalPalette = []; 
 
             for (let i = 0; i < frames.length; i++) {
                 const frame = frames[i];
+                if (frame.disposalType === 2) compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
+                else if (frame.disposalType === 3 && prevImageData) compCtx.putImageData(prevImageData, 0, 0);
                 
-                if (frame.disposalType === 2) {
-                    compCtx.clearRect(0, 0, compCanvas.width, compCanvas.height);
-                } else if (frame.disposalType === 3 && prevImageData) {
-                    compCtx.putImageData(prevImageData, 0, 0);
-                }
-                
-                if (frame.disposalType === 1 || frame.disposalType === 0) {
-                    prevImageData = compCtx.getImageData(0, 0, compCanvas.width, compCanvas.height);
-                }
+                if (frame.disposalType === 1 || frame.disposalType === 0) prevImageData = compCtx.getImageData(0, 0, compCanvas.width, compCanvas.height);
 
                 const frameImageData = new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height);
-                
-                const patchCanvas = document.createElement('canvas');
-                patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
+                const patchCanvas = document.createElement('canvas'); patchCanvas.width = frame.dims.width; patchCanvas.height = frame.dims.height;
                 patchCanvas.getContext('2d').putImageData(frameImageData, 0, 0);
                 compCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
-                const targetCanvas = extractPerfectPixels(compCanvas, size, globalPalette);
+                const isFirstFrame = (i === 0);
+                const targetCanvas = extractPerfectPixels(compCanvas, size, globalPalette, isFirstFrame, boxSize, strategy);
 
                 gif.addFrame(targetCanvas, {delay: frame.delay, copy: true});
             }
