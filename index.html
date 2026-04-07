@@ -400,9 +400,18 @@
                     const convUrl = URL.createObjectURL(gifBlob);
                     
                     if (file === files[files.length - 1]) {
+                        // Speichere die aktuelle URL des Original-GIFs
+                        const currentOrigSrc = previewOrig.src; 
+                        
+                        // Leere beide Bildquellen, um laufende Animationen sofort zu stoppen
+                        previewOrig.src = ""; 
                         previewConv.src = "";
+                        
+                        // Setze beide Quellen gleichzeitig neu, um sie synchron abspielen zu lassen
                         setTimeout(() => {
+                            previewOrig.src = currentOrigSrc;
                             previewConv.src = convUrl;
+                            
                             convContainer.classList.remove('hidden');
                             convPlaceholder.classList.add('hidden');
                         }, 50);
