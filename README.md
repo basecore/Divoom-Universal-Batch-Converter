@@ -8,9 +8,13 @@ This project was specifically created as a companion tool for the awesome [esp32
 **[Click here to open the Web App](https://basecore.github.io/Divoom-Universal-Batch-Converter/)**  
 *(Note: Ensure your GitHub Pages settings point to the `main` branch to use this link)*
 
+## 📸 Screenshots
+![App Interface Part 1](images/Screenshot_App1.png)
+![App Interface Part 2](images/Screenshot_App2.png)
+
 ## 🤖 Built with AI (Gemini 3.1 Pro)
 I actually don't have any programming skills! I built this entire tool from scratch using **Gemini 3.1 Pro**. 
-Why? I just wanted a simple, reliable way to get my GIFs working perfectly on my ESP32 Divoom Pixoo. I was tired of relying on external, ad-riddled conversion websites that might secretly store user data, and I didn't want to install any software on my PC. I needed something that works *on the fly*, directly in the browser (even on a mobile phone), and can be hosted securely and freely via GitHub. Thanks to AI, this zero-compromise tool now exists for everyone to use!
+Why? I just wanted a simple, reliable way to get my GIFs working perfectly on my ESP32 Divoom Pixoo. I was tired of relying on external, ad-riddled conversion websites that might secretly store user data, and I didn't want to install any software on my PC. I needed something that works *on the fly*, directly in the browser, and can be hosted securely and freely via GitHub. Thanks to AI, this zero-compromise tool now exists for everyone to use!
 
 ## ⚠️ The Problem it Solves
 As discussed in [hass-divoom Issue #19](https://github.com/d03n3rfr1tz3/hass-divoom/issues/19), simply downloading a GIF from the Divoom app or the web and sending it to your device via Home Assistant often fails (e.g., showing only a solid background color, flickering colors, or rendering as a blurry mess). 
@@ -50,7 +54,7 @@ Once you have converted your GIFs using this tool, you can easily display them o
 3. Upload your perfectly converted `.gif` files directly into this new `pixelart` folder.
 
 ### 2. Configure the Notify Service
-If you haven't already, install the `hass-divoom` custom component manually (by copying the downloaded zip contents into `custom_components\divoom`). 
+If you haven't already, install the `hass-divoom` custom component manually (by copying the downloaded zip contents into `custom_componentsdivoom`). 
 Then, add the following snippet to your `configuration.yaml` to set up the notify service for your device:
 
 ```yaml
