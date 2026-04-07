@@ -10,7 +10,7 @@ This project was specifically created as a companion tool for the awesome [esp32
 
 ## 🤖 Built with AI (Gemini 3.1 Pro)
 I actually don't have any programming skills! I built this entire tool from scratch using **Gemini 3.1 Pro**. 
-Why? I just wanted a simple, reliable way to get my GIFs working perfectly on my ESP32 Divoom Pixoo. I was tired of relying on external, ad-riddled conversion websites that might secretly store user data, and I didn't want to install any software on my PC. I needed something that works *on the fly*, directly in the browser, and can be hosted securely and freely via GitHub. Thanks to AI, this zero-compromise tool now exists for everyone to use!
+Why? I just wanted a simple, reliable way to get my GIFs working perfectly on my ESP32 Divoom Pixoo. I was tired of relying on external, ad-riddled conversion websites that might secretly store user data, and I didn't want to install any software on my PC. I needed something that works *on the fly*, directly in the browser (even on a mobile phone), and can be hosted securely and freely via GitHub. Thanks to AI, this zero-compromise tool now exists for everyone to use!
 
 ## ⚠️ The Problem it Solves
 As discussed in [hass-divoom Issue #19](https://github.com/d03n3rfr1tz3/hass-divoom/issues/19), simply downloading a GIF from the Divoom app or the web and sending it to your device via Home Assistant often fails (e.g., showing only a solid background color, flickering colors, or rendering as a blurry mess). 
