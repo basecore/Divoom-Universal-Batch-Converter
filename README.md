@@ -40,6 +40,43 @@ Select your device from the dropdown before dropping your files:
 * **32x32:** Pixoo Max, Backpack M
 * **64x64:** Pixoo 64
 
+## 🏡 Using your GIFs in Home Assistant
+Once you have converted your GIFs using this tool, you can easily display them on your Divoom device using the [hass-divoom](https://github.com/d03n3rfr1tz3/hass-divoom) integration. 
+
+### 1. Create the Media Directory & Upload your GIFs
+1. Open your Home Assistant configuration directory (this is the root folder where your `configuration.yaml` is located).
+2. Create a new folder named `pixelart` inside this directory. 
+   *(Note: The downloaded `hass-divoom` ZIP file includes a `pixelart` folder with some sample images that you could copy over. However, if you don't want to use their sample content, simply create an empty folder named `pixelart` manually).*
+3. Upload your perfectly converted `.gif` files directly into this new `pixelart` folder.
+
+### 2. Configure the Notify Service
+If you haven't already, install the `hass-divoom` custom component manually (by copying the downloaded zip contents into `custom_components\divoom`). 
+Then, add the following snippet to your `configuration.yaml` to set up the notify service for your device:
+
+```yaml
+notify:
+  - name: Divoom Device
+    platform: divoom
+    # host: "192.168.0.123"      # Optional: IP of your ESP32 Bluetooth Proxy
+    mac: "12:34:56:78:9A"        # Required: Bluetooth MAC address of your Divoom
+    port: 1                      # Optional: Usually 1 (might be 2 for devices with audio)
+    device_type: "pixoo"         # Required: e.g., pixoo, ditoo, timebox, etc.
+    media_directory: "pixelart"  # Required: The directory you created in Step 1
+    escape_payload: false        # Optional: Set to true only for some older Divoom firmwares
+```
+
+### 3. Send the Image to your Divoom
+You can now display your uploaded GIFs by calling the notify service (e.g., in automations, scripts, or the Developer Tools). Simply use the `image` mode and specify the filename:
+
+```yaml
+service: notify.divoom_device
+data:
+  message: "image"
+  data:
+    file: "your_converted_animation.gif" # Must match the exact filename in your pixelart folder
+    # time: 100 # Optional: Time in ms between frames. Defaults to the GIF's native timing.
+```
+
 ## ⚙️ How to host this yourself (for forks)
 Since this is a static HTML app without a backend, hosting it is incredibly easy:
 1. Fork or clone this repository.
